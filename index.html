@@ -19,7 +19,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 .summary{display:flex;background:#fff;border-radius:13px;padding:10px 5px;margin-bottom:8px}.metric{flex:1;text-align:center;border-right:1px solid #eee}.metric:last-child{border:0}.metric small{display:block;color:#777;font-size:10px}.metric b{display:block;font-size:16px;margin-top:1px}.green{color:#16823b}.red{color:#c62828}
 .list{background:#fff;border-radius:13px;overflow:hidden}.row{padding:9px 10px;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}
 .rowtop{display:flex;align-items:center;gap:5px}.name{font-size:14px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:10px;color:#666;white-space:nowrap}.numbers strong{color:#111}.over{color:#c62828!important}
-.entry{display:flex;gap:6px;margin-top:6px}.price{flex:1;min-width:0;height:38px;border:1px solid #d8d8dd;border-radius:9px;padding:5px 9px;font-size:17px;-webkit-appearance:none}.plus{width:46px;height:38px;padding:0;font-size:20px}
+.entry{display:flex;gap:6px;margin-top:6px}.qty{width:48px;height:38px;border:1px solid #d8d8dd;border-radius:9px;padding:5px 6px;font-size:17px;text-align:center;-webkit-appearance:none}.price{flex:1;min-width:0;height:38px;border:1px solid #d8d8dd;border-radius:9px;padding:5px 9px;font-size:17px;-webkit-appearance:none}.plus{width:46px;height:38px;padding:0;font-size:20px}
 .hist{font-size:10px;color:#888;margin-top:4px;white-space:nowrap;overflow-x:auto}.hist button{height:20px;padding:0 6px;font-size:10px;background:#eee;color:#333;margin-left:2px}
 .alert{font-size:10px;color:#b42318;background:#fff1f1;border-radius:7px;padding:4px 6px;margin-top:5px;display:inline-block}
 .actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{flex:1;min-width:0}.footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}.footer span{color:#777;font-weight:500}
@@ -45,7 +45,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 <div class="card actions">
 <button class="gray" id="historyBtn">📋 Storico</button>
 <button class="gray" id="undoBtn">↩️ Annulla</button>
-<button class="gray" id="editBtn">⚙️ Categorie</button>
+<button class="gray" id="editBtn">⚙️ Categorie</button><button class="gray" id="summaryBtn">🧾 Fine spesa</button>
 </div>
 
 <div class="list" id="list"></div>
@@ -66,19 +66,16 @@ let data=load();
 function fresh(){return {budget:200,cats:DEFAULTS.map(x=>({name:x[0],budget:x[1],items:[]})),history:[]}}
 function load(){
  try{
-  const x=JSON.parse(localStorage.getItem("spesaV3"));
-  if(x&&Array.isArray(x.cats)) return x;
+  const x=JSON.parse(localStorage.getItem("spesaV4"));
+  if(x&&Array.isArray(x.cats)){x.cats.forEach(c=>{c.items=(c.items||[]).map(v=>typeof v==="number"?{price:v,qty:1}:v)});return x;}
  }catch(e){}
  return fresh();
 }
-function save(){localStorage.setItem("spesaV3",JSON.stringify(data))}
-function catSum(c){return c.items.reduce((a,v)=>a+Number(v),0)}
+function save(){localStorage.setItem("spesaV4",JSON.stringify(data))}
+function catSum(c){return c.items.reduce((a,v)=>a+Number(v.price||0)*Number(v.qty||1),0)}
 function totalSpent(){return data.cats.reduce((a,c)=>a+catSum(c),0)}
-function readPrice(i){
- const el=$("price-"+i); if(!el)return NaN;
- const raw=String(el.value).trim().replace(",",".");
- return parseFloat(raw);
-}
+function readPrice(i){const el=$("price-"+i);if(!el)return NaN;return parseFloat(String(el.value).trim().replace(",","."));}
+function readQty(i){const el=$("qty-"+i);if(!el)return 1;const q=parseInt(el.value,10);return Number.isFinite(q)&&q>0?q:1;}
 function updateSummary(pendingCat=-1,pending=0){
  const spent=money(totalSpent()+pending), rem=money(data.budget-spent);
  $("budgetTotal").textContent=euro(data.budget);
@@ -100,45 +97,51 @@ function render(){
   row.innerHTML=
    '<div class="rowtop"><div class="name">'+escapeHtml(c.name)+'</div>'+
    '<div class="numbers">B. '+euro(c.budget)+' · <strong>S. '+euro(sp)+'</strong> · <span class="'+(rm<0?'over':'')+'">R. '+euro(rm)+'</span></div></div>'+
-   '<div class="entry"><input class="price" id="price-'+i+'" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo €">'+
+   '<div class="entry"><input class="qty" id="qty-'+i+'" type="number" inputmode="numeric" step="1" min="1" value="1" aria-label="Quantità">'+
+   '<input class="price" id="price-'+i+'" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo unitario €">'+
    '<button class="plus" type="button" data-add="'+i+'">+</button></div>'+
    (rm<0?'<div class="alert">⚠️ Superato di '+euro(-rm)+'</div>':'')+
    renderHistory(c,i);
   list.appendChild(row);
   const input=$("price-"+i);
   input.addEventListener("input",()=>preview(i));
+  $("qty-"+i).addEventListener("input",()=>preview(i));
   input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add(i)}});
  });
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function renderHistory(c,i){
  if(!c.items.length)return "";
- return '<div class="hist">'+c.items.map((v,j)=>euro(v)+' <button type="button" data-del="'+i+','+j+'">×</button>').join(" · ")+'</div>';
+ return '<div class="hist">'+c.items.map((v,j)=>{const q=Number(v.qty||1),t=money(Number(v.price||0)*q);return euro(t)+(q>1?' ('+q+'× '+euro(v.price)+')':'')+' <button type="button" data-edit="'+i+','+j+'">✏️</button><button type="button" data-del="'+i+','+j+'">×</button>';}).join(" · ")+'</div>';
 }
 function preview(i){
  const v=readPrice(i);
  if(!Number.isFinite(v)||v<=0){updateSummary();return}
- const c=data.cats[i],shown=money(catSum(c)+v),rm=money(c.budget-shown);
+ const q=readQty(i),c=data.cats[i],shown=money(catSum(c)+v*q),rm=money(c.budget-shown);
  const row=$("price-"+i).closest(".row");
  row.querySelector(".numbers").innerHTML='B. '+euro(c.budget)+' · <strong>S. '+euro(shown)+'</strong> · <span class="'+(rm<0?'over':'')+'">R. '+euro(rm)+'</span>';
- updateSummary(i,v);
+ updateSummary(i,v*q);
 }
 function add(i){
- const el=$("price-"+i),v=readPrice(i);
+ const el=$("price-"+i),v=readPrice(i),q=readQty(i);
  if(!el||!Number.isFinite(v)||v<=0){el&&el.focus();return false}
- const value=money(v);
- data.cats[i].items.push(value);
- data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:value});
- save();render();
- const next=$("price-"+i);if(next){next.focus();next.select()}
- return true;
+ const value=money(v),item={price:value,qty:q};
+ data.cats[i].items.push(item);
+ data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:value,qty:q,total:money(value*q)});
+ save();render();const next=$("price-"+i);if(next){next.focus();next.select()}return true;
 }
 function del(i,j){
  const c=data.cats[i];if(!c||j<0||j>=c.items.length)return;
- const value=c.items[j];c.items.splice(j,1);
- const k=data.history.findIndex(x=>x.cat===c.name&&Number(x.price)===Number(value));
- if(k>=0)data.history.splice(k,1);
- save();render();
+ const item=c.items[j];c.items.splice(j,1);
+ const k=data.history.findIndex(x=>x.cat===c.name&&Number(x.price)===Number(item.price)&&Number(x.qty||1)===Number(item.qty||1));
+ if(k>=0)data.history.splice(k,1);save();render();
+}
+function editItem(i,j){
+ const item=data.cats[i]?.items[j];if(!item)return;
+ $("sheetContent").innerHTML='<h2>✏️ Modifica spesa</h2><div class="line"><input id="editQty" type="number" min="1" step="1" value="'+(item.qty||1)+'" placeholder="Quantità"><input id="editPrice" type="number" min="0" step="0.01" value="'+item.price+'" placeholder="Prezzo unitario €"></div><button id="saveItem" style="width:100%">Salva modifica</button><button class="gray" id="deleteItem" style="width:100%;margin-top:7px">🗑️ Elimina</button><button class="gray" id="cancelItem" style="width:100%;margin-top:7px">Annulla</button>';
+ $("modal").classList.add("open");$("cancelItem").onclick=closeModal;
+ $("deleteItem").onclick=()=>{closeModal();del(i,j)};
+ $("saveItem").onclick=()=>{const p=parseFloat(String($("editPrice").value).replace(",",".")),q=parseInt($("editQty").value,10);if(!Number.isFinite(p)||p<=0||!Number.isFinite(q)||q<1)return;item.price=money(p);item.qty=q;save();closeModal();render()};
 }
 function undo(){
  for(let i=data.cats.length-1;i>=0;i--){
@@ -160,8 +163,14 @@ function resetAll(){
 }
 function closeModal(){$("modal").classList.remove("open")}
 function openHistory(){
- const h=data.history.length?data.history.slice().reverse().map(x=>'<div class="history-item"><span>'+escapeHtml(x.cat)+'<br><small>'+x.date+'</small></span><b>'+euro(x.price)+'</b></div>').join(""):"<p>Nessun movimento ancora.</p>";
+ const h=data.history.length?data.history.slice().reverse().map(x=>'<div class="history-item"><span>'+escapeHtml(x.cat)+'<br><small>'+x.date+'</small></span><b>'+euro(x.total!=null?x.total:Number(x.price||0))+(Number(x.qty||1)>1?' <small>('+x.qty+'×)</small>':'')+'</b></div>').join(""):"<p>Nessun movimento ancora.</p>";
  $("sheetContent").innerHTML='<h2>📋 Storico</h2>'+h+'<button id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
+ $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
+}
+function openFinalSummary(){
+ const total=money(totalSpent()),rem=money(data.budget-total),used=data.cats.filter(c=>catSum(c)>0).sort((a,b)=>catSum(b)-catSum(a));
+ const rows=used.length?used.map(c=>'<div class="history-item"><span>'+escapeHtml(c.name)+'</span><b>'+euro(catSum(c))+'</b></div>').join(""):"<p>Nessuna spesa registrata.</p>";
+ $("sheetContent").innerHTML='<h2>🧾 Fine spesa</h2><div class="history-item"><span>Budget</span><b>'+euro(data.budget)+'</b></div><div class="history-item"><span>Totale speso</span><b>'+euro(total)+'</b></div><div class="history-item"><span>Rimanenza</span><b class="'+(rem<0?'red':'green')+'">'+euro(rem)+'</b></div><h3 style="font-size:14px;margin:14px 0 5px">Per categoria</h3>'+rows+'<button id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
  $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
 }
 function editBudgets(){
@@ -175,6 +184,7 @@ function saveBudgets(){
 }
 $("list").addEventListener("click",e=>{
  const addBtn=e.target.closest("[data-add]");if(addBtn){add(Number(addBtn.dataset.add));return}
+ const editBtn=e.target.closest("[data-edit]");if(editBtn){const p=editBtn.dataset.edit.split(",").map(Number);editItem(p[0],p[1]);return}
  const delBtn=e.target.closest("[data-del]");if(delBtn){const p=delBtn.dataset.del.split(",").map(Number);del(p[0],p[1])}
 });
 $("setBudgetBtn").onclick=setBudget;
@@ -182,6 +192,7 @@ $("newShopBtn").onclick=newShop;
 $("historyBtn").onclick=openHistory;
 $("undoBtn").onclick=undo;
 $("editBtn").onclick=editBudgets;
+$("summaryBtn").onclick=openFinalSummary;
 $("resetBtn").onclick=resetAll;
 $("modal").addEventListener("click",e=>{if(e.target===$("modal"))closeModal()});
 render();
