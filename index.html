@@ -17,7 +17,7 @@ h1{font-size:22px;letter-spacing:-.4px;margin:0 0 2px}.subtitle{font-size:12px;c
 .top{display:flex;align-items:center;gap:6px}.top label{font-size:12px;color:#666;font-weight:700}.top input{width:76px;height:34px;border:1px solid #d7d7dc;border-radius:9px;padding:5px 8px;font-size:16px}
 button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding:0 11px;font-weight:700;font-size:13px;touch-action:manipulation}.gray{background:#e9e9ee;color:#222}.top .new{margin-left:auto}
 .summary{display:flex;background:#fff;border-radius:13px;padding:10px 5px;margin-bottom:8px}.metric{flex:1;text-align:center;border-right:1px solid #eee}.metric:last-child{border:0}.metric small{display:block;color:#777;font-size:10px}.metric b{display:block;font-size:16px;margin-top:1px}.green{color:#16823b}.red{color:#c62828}
-.list{background:#fff;border-radius:13px;overflow:hidden}.row{padding:9px 10px;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}
+.list{background:#fff;border-radius:13px;overflow:hidden}.section-head{padding:11px 12px 8px;background:#f2f2f7;border-bottom:1px solid #e7e7eb}.section-title{font-size:15px;font-weight:800;letter-spacing:-.2px}.row{padding:9px 10px;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}
 .rowtop{display:flex;align-items:center;gap:5px}.name{font-size:14px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:10px;color:#666;white-space:nowrap}.numbers strong{color:#111}.over{color:#c62828!important}
 .entry{display:flex;gap:6px;margin-top:6px}.qty{width:48px;height:38px;border:1px solid #d8d8dd;border-radius:9px;padding:5px 6px;font-size:17px;text-align:center;-webkit-appearance:none}.price{flex:1;min-width:0;height:38px;border:1px solid #d8d8dd;border-radius:9px;padding:5px 9px;font-size:17px;-webkit-appearance:none}.plus{width:46px;height:38px;padding:0;font-size:20px}
 .hist{font-size:10px;color:#888;margin-top:4px;white-space:nowrap;overflow-x:auto}.hist button{height:20px;padding:0 6px;font-size:10px;background:#eee;color:#333;margin-left:2px}
@@ -89,7 +89,11 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 <script>
 (function(){
 "use strict";
-const DEFAULTS=[["🍝 Pasta, riso, farine",20],["🥫 Conserve e legumi",15],["🥩 Carne, pesce, uova",45],["🥛 Latte, yogurt, formaggi",25],["🥦 Verdura",25],["🍎 Frutta",20],["🍞 Pane",10],["☕ Colazione/snack",15],["🫒 Olio, sale, condimenti",10],["💰 Riserva",15]];
+const DEFAULTS=[
+ ["🛒 SPESA ALIMENTARE","🍝 Pasta, riso e cereali",15],["🛒 SPESA ALIMENTARE","🥫 Conserve e legumi",10],["🛒 SPESA ALIMENTARE","🥩 Carne, pesce e uova",30],["🛒 SPESA ALIMENTARE","🥛 Latte, yogurt e formaggi",20],["🛒 SPESA ALIMENTARE","🥦 Verdura",15],["🛒 SPESA ALIMENTARE","🍎 Frutta",10],["🛒 SPESA ALIMENTARE","🍞 Pane e prodotti da forno",8],["🛒 SPESA ALIMENTARE","☕ Colazione",8],["🛒 SPESA ALIMENTARE","🍪 Snack e dolci",7],["🛒 SPESA ALIMENTARE","🥤 Bevande",5],["🛒 SPESA ALIMENTARE","☕ Caffè e tè",4],["🛒 SPESA ALIMENTARE","🫒 Olio, aceto e condimenti",4],["🛒 SPESA ALIMENTARE","🧂 Sale, spezie e salse",2],["🛒 SPESA ALIMENTARE","🧊 Surgelati",2],
+ ["🐱 GATTI","🐱 Cibo per gatti",12],["🐱 GATTI","🪣 Lettiera",6],["🐱 GATTI","🧴 Igiene",2],["🐱 GATTI","🧸 Accessori e giochi",2],["🐱 GATTI","🏥 Cura e salute",1],["🐱 GATTI","🏠 Accessori per la casa del gatto",1],["🐱 GATTI","💰 Riserva Gatti",1],
+ ["🏠 CASA & PULIZIA","🧽 Pulizia della casa",5],["🏠 CASA & PULIZIA","🍽️ Pulizia cucina",5],["🏠 CASA & PULIZIA","👕 Bucato",5],["🏠 CASA & PULIZIA","🧻 Carta e prodotti assorbenti",5],["🏠 CASA & PULIZIA","🗑️ Rifiuti",3],["🏠 CASA & PULIZIA","🍽️ Monouso",3],["🏠 CASA & PULIZIA","🧹 Accessori per la pulizia",2],["🏠 CASA & PULIZIA","🧴 Prodotti per superfici",1],["🏠 CASA & PULIZIA","💰 Riserva Casa",6]
+];
 const $=id=>document.getElementById(id);
 const euro=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(n);
 const money=v=>Math.round(v*100)/100;
@@ -98,7 +102,7 @@ let data=load(); let pendingNames={};
 
 function fresh(){return {
   budget:200,
-  cats:DEFAULTS.map(x=>({name:x[0],budget:x[1],items:[]})),
+  cats:DEFAULTS.map(x=>({section:x[0],name:x[1],budget:x[2],items:[]})),
   history:[],shoppingList:[],products:[],sessions:[],
   supermarkets:[],pantry:[],settings:{currency:"EUR"}
 }}
@@ -107,7 +111,10 @@ function load(){
   const raw=localStorage.getItem("spesaV6") || localStorage.getItem("spesaV5");
   const x=JSON.parse(raw);
   if(x&&Array.isArray(x.cats)){
-      x.cats.forEach(c=>{c.items=(c.items||[]).map(v=>typeof v==="number"?{price:v,qty:1,name:""}:Object.assign({name:""},v))});
+      x.cats.forEach(c=>{
+        c.items=(c.items||[]).map(v=>typeof v==="number"?{price:v,qty:1,name:""}:Object.assign({name:""},v));
+        if(!c.section)c.section="🛒 SPESA ALIMENTARE";
+      });
       x.shoppingList=Array.isArray(x.shoppingList)?x.shoppingList:[];
       x.products=Array.isArray(x.products)?x.products:[];
       x.sessions=Array.isArray(x.sessions)?x.sessions:[];
@@ -139,7 +146,13 @@ function render(){
  $("budgetInput").value=data.budget;
  $("categoryBudgetTotal").textContent=euro(data.cats.reduce((a,c)=>a+c.budget,0));
  const list=$("list");list.innerHTML="";
- data.cats.forEach((c,i)=>{
+ const groups=["🛒 SPESA ALIMENTARE","🐱 GATTI","🏠 CASA & PULIZIA"];
+ groups.forEach(section=>{
+  const cats=data.cats.map((c,i)=>({c,i})).filter(x=>x.c.section===section);
+  if(!cats.length)return;
+  const sec=document.createElement("div");sec.className="section-head";sec.innerHTML='<div class="section-title">'+escapeHtml(section)+'</div>';
+  list.appendChild(sec);
+  cats.forEach(({c,i})=>{
   const sp=catSum(c), rm=c.budget-sp;
   const row=document.createElement("div");row.className="row";
   row.innerHTML=
@@ -155,6 +168,7 @@ function render(){
   input.addEventListener("input",()=>preview(i));
   $("qty-"+i).addEventListener("input",()=>preview(i));
   input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add(i)}});
+  });
  });
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
@@ -271,14 +285,17 @@ function openV6Markets(){
  $("sheetContent").querySelectorAll("[data-mdel]").forEach(el=>el.onclick=()=>{data.supermarkets.splice(Number(el.dataset.mdel),1);save();openV6Markets()});
 }
 function openV6Categories(){
- const rows=data.cats.map((c,i)=>'<div class="manage-row"><div class="grow"><b>'+escapeHtml(c.name)+'</b><div class="muted">Budget: '+euro(c.budget)+' · Speso: '+euro(catSum(c))+'</div></div><button class="smallbtn" data-cat-edit="'+i+'">✏️</button><button class="gray smallbtn" data-cat-del="'+i+'">×</button></div>').join("");
- $("sheetContent").innerHTML='<h2>🗂️ Categorie</h2><button id="addCat" style="width:100%">＋ Nuova categoria</button>'+rows+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
+ const rows=data.cats.map((c,i)=>'<div class="manage-row"><div class="grow"><b>'+escapeHtml(c.name)+'</b><div class="muted">'+escapeHtml(c.section||"🛒 SPESA ALIMENTARE")+' · Budget: '+euro(c.budget)+' · Speso: '+euro(catSum(c))+'</div></div><button class="smallbtn" data-cat-edit="'+i+'">✏️</button><button class="gray smallbtn" data-cat-del="'+i+'">×</button></div>').join("");
+ const sections=["🛒 SPESA ALIMENTARE","🐱 GATTI","🏠 CASA & PULIZIA"];
+ const opts=sections.map((x,i)=> (i+1)+" = "+x).join("\n");
+ $("sheetContent").innerHTML='<h2>🗂️ Categorie</h2><p class="muted">Le categorie sono organizzate in tre sezioni. Per una nuova categoria scegli la sezione 1, 2 o 3.</p><button id="addCat" style="width:100%">＋ Nuova categoria</button>'+rows+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
  $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
- $("addCat").onclick=()=>{const n=prompt("Nome categoria");if(!n||!n.trim())return;const b=parseFloat(String(prompt("Budget categoria","0")||"0").replace(",","."));data.cats.push({name:n.trim(),budget:Number.isFinite(b)&&b>=0?money(b):0,items:[]});save();openV6Categories();render()};
+ $("addCat").onclick=()=>{const n=prompt("Nome categoria");if(!n||!n.trim())return;const sec=prompt(opts,"1");const si=Math.max(1,Math.min(3,parseInt(sec,10)||1))-1;const b=parseFloat(String(prompt("Budget categoria","0")||"0").replace(",","."));data.cats.push({section:sections[si],name:n.trim(),budget:Number.isFinite(b)&&b>=0?money(b):0,items:[]});save();openV6Categories();render()};
  $("sheetContent").querySelectorAll("[data-cat-edit]").forEach(el=>el.onclick=()=>{
    const i=Number(el.dataset.catEdit),c=data.cats[i],n=prompt("Nome categoria",c.name);if(!n||!n.trim())return;
+   const sec=prompt(opts,""+(sections.indexOf(c.section)+1||1));const si=Math.max(1,Math.min(3,parseInt(sec,10)||1))-1;
    const b=parseFloat(String(prompt("Budget categoria",String(c.budget).replace(".",","))||c.budget).replace(",","."));
-   c.name=n.trim();if(Number.isFinite(b)&&b>=0)c.budget=money(b);save();openV6Categories();render();
+   c.name=n.trim();c.section=sections[si];if(Number.isFinite(b)&&b>=0)c.budget=money(b);save();openV6Categories();render();
  });
  $("sheetContent").querySelectorAll("[data-cat-del]").forEach(el=>el.onclick=()=>{
    const i=Number(el.dataset.catDel),c=data.cats[i];if(catSum(c)>0){alert("Non puoi eliminare una categoria con spese registrate.");return}
