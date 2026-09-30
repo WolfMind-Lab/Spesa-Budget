@@ -275,7 +275,21 @@ function add(i){
  data.cats[i].items.push(item);
  const market=(item.name&&data.supermarkets.length)?(prompt("Supermercato (facoltativo)",data.supermarkets[0]||"")||""):"";
  data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:value,qty:q,total:money(value*q),product:item.name||"",market});
- if(item.name){const ex=(data.products||[]).find(p=>p.name.toLowerCase()===item.name.toLowerCase()); if(ex)ex.price=value; else data.products.push({name:item.name,price:value});}
+ if(item.name){
+  const normalized=item.name.trim().toLowerCase();
+  const ex=(data.products||[]).find(p=>p.name.trim().toLowerCase()===normalized);
+  if(ex)ex.price=value; else data.products.push({name:item.name,price:value});
+  // Sincronizza automaticamente la lista della spesa: se il prodotto acquistato
+  // corrisponde a un elemento della lista, viene segnato come comprato.
+  (data.shoppingList||[]).forEach(x=>{
+    if(String(x.name||"").trim().toLowerCase()===normalized){
+      x.done=true;
+      x.purchased=true;
+      x.purchasedAt=new Date().toLocaleString("it-IT");
+      x.purchasedPrice=value;
+    }
+  });
+}
  save();render();const next=$("price-"+i);if(next){next.focus();next.select()}return true;
 }
 function del(i,j){
@@ -301,13 +315,21 @@ function setBudget(){
  if(Number.isFinite(v)&&v>=0){data.budget=money(v);save();render()}
 }
 function newShop(){
- if(confirm("Azzerare i prezzi e iniziare una nuova spesa?")){
+ if(confirm("Iniziare una nuova spesa?\\n\\nVerranno rimossi solo gli articoli della spesa corrente. Storico, lista della spesa, prodotti, dispensa, supermercati e budget resteranno invariati.")){
   data.cats.forEach(c=>c.items=[]);
   save();render();
  }
 }
 function resetAll(){
- if(confirm("Azzera tutto e torna ai budget iniziali?")){data=fresh();save();render()}
+ const ok=confirm("Ripristinare solo i budget iniziali?\\n\\nLe spese, lo storico, la lista della spesa, i prodotti, la dispensa, i supermercati e le altre modifiche NON verranno cancellati.");
+ if(!ok)return;
+ const initialByKey=new Map(DEFAULTS.map(x=>[x[0]+"||"+x[1],x[2]]));
+ data.budget=200;
+ data.cats.forEach(c=>{
+   const initial=initialByKey.get(c.section+"||"+c.name);
+   if(initial!==undefined)c.budget=initial;
+ });
+ save();render();
 }
 function closeModal(){$("modal").classList.remove("open")}
 
