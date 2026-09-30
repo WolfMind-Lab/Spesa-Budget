@@ -3,98 +3,116 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#f5f5f7">
+<meta name="theme-color" content="#f2f2f7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa">
-<title>🛒 Spesa</title>
-<link rel="manifest" href="./manifest.webmanifest">
+<title>Spesa — Budget</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f5f7;color:#171717;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif}
-.wrap{max-width:780px;margin:auto;padding:calc(12px + env(safe-area-inset-top)) 12px calc(28px + env(safe-area-inset-bottom))}
-h1{font-size:27px;margin:5px 2px 3px}.hint{color:#707070;font-size:13px;margin:0 2px 14px}
-.card{background:white;border-radius:18px;padding:14px;margin:10px 0;box-shadow:0 2px 14px rgba(0,0,0,.06)}
-.top{display:grid;grid-template-columns:1fr 1fr;gap:9px}.metric{background:#f3f3f5;border-radius:14px;padding:12px}.metric small{display:block;color:#777;font-size:12px}.metric b{display:block;font-size:20px;margin-top:3px}
-.green{color:#13833b}.red{color:#c62828}
-.budgetrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.budgetrow input{width:120px}
-input{border:1px solid #d7d7dc;border-radius:11px;background:white;padding:11px 12px;font-size:17px;outline:none}
-button{border:0;border-radius:11px;padding:11px 14px;background:#111;color:white;font-weight:700;font-size:14px;touch-action:manipulation}
-button.secondary{background:#ededf0;color:#222}.danger{background:#fff0f0;color:#b42318}
-.table{overflow:hidden}.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:620px}th,td{padding:10px 8px;border-bottom:1px solid #eee;text-align:right;font-size:14px;vertical-align:top}th:first-child,td:first-child{text-align:left}th{color:#777;font-size:12px}.cat{font-weight:700}.adder{display:flex;gap:6px;margin-top:8px}.price{width:120px;min-width:120px}.plus{padding:10px 15px;font-size:18px}.history{font-weight:400;font-size:11px;color:#777;margin-top:5px;line-height:1.7}.history button{font-size:10px;padding:2px 6px;background:#eee;color:#333;margin-left:2px}
-tfoot th{font-size:13px;color:#171717}.note{font-size:11px;color:#777;margin:9px 2px 0}
-@media(max-width:500px){h1{font-size:23px}.metric b{font-size:18px}.card{padding:12px;border-radius:16px}}
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
+*{box-sizing:border-box}
+body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(76px + env(safe-area-inset-bottom))}
+.app{max-width:620px;margin:auto}
+header{padding:5px 4px 10px}
+h1{font-size:22px;letter-spacing:-.4px;margin:0 0 2px}
+.subtitle{font-size:12px;color:#777;margin:0}
+.top{display:flex;align-items:center;gap:7px;background:#fff;border-radius:13px;padding:8px;margin-bottom:8px}
+.top label{font-size:12px;color:#666;font-weight:600}
+.top input{width:78px;height:34px;border:1px solid #d7d7dc;border-radius:9px;padding:5px 8px;font-size:16px}
+button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding:0 12px;font-weight:700;font-size:13px}
+.top .new{margin-left:auto;background:#e9e9ee;color:#222}
+.summary{display:flex;background:#fff;border-radius:13px;padding:10px 6px;margin-bottom:8px}
+.metric{flex:1;text-align:center;border-right:1px solid #eee}
+.metric:last-child{border:0}
+.metric small{display:block;color:#777;font-size:10px}
+.metric b{display:block;font-size:16px;margin-top:1px}
+.green{color:#16823b}.red{color:#c62828}
+.list{background:#fff;border-radius:13px;overflow:hidden}
+.row{padding:9px 10px;border-bottom:1px solid #eee}
+.row:last-child{border-bottom:0}
+.rowtop{display:flex;align-items:center;gap:6px}
+.name{font-size:14px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.numbers{font-size:11px;color:#666;white-space:nowrap}
+.numbers strong{color:#111}
+.over{color:#c62828!important}
+.entry{display:flex;gap:6px;margin-top:6px}
+.price{flex:1;min-width:0;height:34px;border:1px solid #d8d8dd;border-radius:9px;padding:5px 9px;font-size:16px}
+.plus{width:42px;padding:0;font-size:19px}
+.hist{font-size:10px;color:#888;margin-top:4px;white-space:nowrap;overflow-x:auto}
+.hist button{height:20px;padding:0 6px;font-size:10px;background:#eee;color:#333;margin-left:2px}
+.footer{background:#fff;border-radius:13px;padding:9px 10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}
+.footer span{color:#777;font-weight:500}
+.reset{background:#fff0f0;color:#b42318;height:30px}
+.sticky{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#111;color:#fff;border-radius:14px;padding:9px 13px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 5px 25px #0003;z-index:5}
+.sticky small{font-size:10px;color:#ccc}.sticky b{font-size:17px}
+@media(min-width:700px){body{padding-left:20px;padding-right:20px}.sticky{left:20px;right:20px}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="app">
+<header>
 <h1>🛒 SPESA — BUDGET</h1>
-<p class="hint">Inserisci solo il prezzo. Speso, rimasto e totale si aggiornano automaticamente.</p>
+<p class="subtitle">Inserisci solo il prezzo. Il resto si calcola da solo.</p>
+</header>
 
-<div class="card">
-  <div class="budgetrow">
-    <b>💰 Budget</b>
-    <input id="budget" type="number" inputmode="decimal" step="0.01" value="200">
-    <button onclick="setBudget()">Imposta</button>
-    <button class="secondary" onclick="newShop()">🔄 Nuova spesa</button>
-  </div>
-</div>
-
-<div class="card top">
-  <div class="metric"><small>💰 Budget</small><b id="b"></b></div>
-  <div class="metric"><small>🛒 Speso</small><b id="s"></b></div>
-  <div class="metric"><small>💵 Rimasto</small><b id="r"></b></div>
-  <div class="metric"><small>📊 Stato</small><b id="st"></b></div>
+<div class="top">
+<label>💰 Budget</label>
+<input id="budget" type="number" inputmode="decimal" step="0.01">
+<button onclick="setBudget()">Imposta</button>
+<button class="new" onclick="newShop()">↻ Nuova</button>
 </div>
 
-<div class="card table">
-<div class="scroll">
-<table>
-<thead><tr><th>Categoria</th><th>Budget</th><th>Speso</th><th>Rimasto</th></tr></thead>
-<tbody id="body"></tbody>
-<tfoot><tr><th>TOTALE</th><th id="tb"></th><th id="ts"></th><th id="tr"></th></tr></tfoot>
-</table>
-</div>
-<p class="note">💾 I dati restano salvati nel browser del dispositivo.</p>
+<div class="summary">
+<div class="metric"><small>Budget</small><b id="b"></b></div>
+<div class="metric"><small>Speso</small><b id="s"></b></div>
+<div class="metric"><small>Rimasto</small><b id="r"></b></div>
+<div class="metric"><small>Stato</small><b id="st"></b></div>
 </div>
 
-<div class="card"><button class="danger" onclick="resetAll()">🗑️ Azzera tutto</button></div>
+<div class="list" id="list"></div>
+
+<div class="footer">
+<div><span>Totale categorie:</span> <b id="catTotal"></b></div>
+<button class="reset" onclick="resetAll()">Azzera</button>
 </div>
+</div>
+
+<div class="sticky"><div><small>DISPONIBILE</small><br><b id="stickyRemain"></b></div><div id="stickyStatus">Entro budget</div></div>
 
 <script>
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(()=>{});
 const base=[
 ["🍝 Pasta, riso, farine",20],["🥫 Conserve e legumi",15],["🥩 Carne, pesce, uova",45],
 ["🥛 Latte, yogurt, formaggi",25],["🥦 Verdura",25],["🍎 Frutta",20],
 ["🍞 Pane",10],["☕ Colazione/snack",15],["🫒 Olio, sale, condimenti",10],["💰 Riserva",15]
 ];
-let data;
-try{data=JSON.parse(localStorage.getItem("spesaApp"))}catch(e){}
+let data; try{data=JSON.parse(localStorage.getItem("spesaCompact"))}catch(e){}
 if(!data)data={budget:200,cats:base.map(x=>({name:x[0],budget:x[1],items:[]}))};
 const euro=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(n);
 const sum=c=>c.items.reduce((a,x)=>a+x,0);
-function save(){localStorage.setItem("spesaApp",JSON.stringify(data))}
+function save(){localStorage.setItem("spesaCompact",JSON.stringify(data))}
 function render(){
- document.getElementById("budget").value=data.budget;
- const total=data.cats.reduce((a,c)=>a+sum(c),0), rem=data.budget-total;
+ budget.value=data.budget;
+ const total=data.cats.reduce((a,c)=>a+sum(c),0),rem=data.budget-total;
  b.textContent=euro(data.budget);s.textContent=euro(total);r.textContent=euro(rem);
- r.className=rem<0?"red":"green";st.textContent=rem<0?"Superato":"Entro budget";st.className=rem<0?"red":"green";
- tb.textContent=euro(data.budget);ts.textContent=euro(total);tr.textContent=euro(rem);
- body.innerHTML="";
+ r.className=rem<0?"red":"green";st.textContent=rem<0?"Superato":"OK";st.className=rem<0?"red":"green";
+ stickyRemain.textContent=euro(rem);stickyRemain.className=rem<0?"red":"";
+ stickyStatus.textContent=rem<0?"⚠️ Budget superato":"✓ Entro budget";
+ catTotal.textContent=euro(data.cats.reduce((a,c)=>a+c.budget,0));
+ list.innerHTML="";
  data.cats.forEach((c,i)=>{
-  const sp=sum(c), rm=c.budget-sp, trr=document.createElement("tr");
-  let hist=c.items.length?`<div class="history">${c.items.map((v,j)=>`${euro(v)} <button onclick="del(${i},${j})">×</button>`).join(" · ")}</div>`:"";
-  trr.innerHTML=`<td><div class="cat">${c.name}</div><div class="adder">
-  <input class="price" id="p${i}" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo €" onkeydown="if(event.key==='Enter')add(${i})">
-  <button class="plus" onclick="add(${i})">+</button></div>${hist}</td>
-  <td>${euro(c.budget)}</td><td>${euro(sp)}</td><td class="${rm<0?"red":""}">${euro(rm)}</td>`;
-  body.appendChild(trr);
+   const sp=sum(c),rm=c.budget-sp;
+   const row=document.createElement("div");row.className="row";
+   const history=c.items.length?`<div class="hist">${c.items.map((v,j)=>`${euro(v)} <button onclick="del(${i},${j})">×</button>`).join(" · ")}</div>`:"";
+   row.innerHTML=`<div class="rowtop"><div class="name">${c.name}</div><div class="numbers">B. ${euro(c.budget)} · <strong>S. ${euro(sp)}</strong> · <span class="${rm<0?"over":""}">R. ${euro(rm)}</span></div></div>
+   <div class="entry"><input class="price" id="p${i}" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo €" onkeydown="if(event.key==='Enter')add(${i})"><button class="plus" onclick="add(${i})">+</button></div>${history}`;
+   list.appendChild(row);
  });
 }
-function add(i){let el=document.getElementById("p"+i),v=parseFloat(String(el.value).replace(",","."));if(!isFinite(v)||v<=0)return;data.cats[i].items.push(Math.round(v*100)/100);el.value="";save();render();setTimeout(()=>document.getElementById("p"+i)?.focus(),40)}
+function add(i){const el=document.getElementById("p"+i);const v=parseFloat(String(el.value).replace(",","."));if(!isFinite(v)||v<=0)return;data.cats[i].items.push(Math.round(v*100)/100);el.value="";save();render();setTimeout(()=>document.getElementById("p"+i)?.focus(),30)}
 function del(i,j){data.cats[i].items.splice(j,1);save();render()}
-function setBudget(){let v=parseFloat(String(budget.value).replace(",","."));if(isFinite(v)&&v>=0){data.budget=Math.round(v*100)/100;save();render()}}
+function setBudget(){const v=parseFloat(String(budget.value).replace(",","."));if(isFinite(v)&&v>=0){data.budget=Math.round(v*100)/100;save();render()}}
 function newShop(){if(confirm("Azzerare i prezzi e iniziare una nuova spesa?")){data.cats.forEach(c=>c.items=[]);save();render()}}
-function resetAll(){if(confirm("Azzerare tutto e tornare a 200 €?")){data={budget:200,cats:base.map(x=>({name:x[0],budget:x[1],items:[]}))};save();render()}}
+function resetAll(){if(confirm("Azzera tutto e torna a 200 €?")){data={budget:200,cats:base.map(x=>({name:x[0],budget:x[1],items:[]}))};save();render()}}
 render();
 </script>
 </body>
