@@ -23,7 +23,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 .alert{font-size:10px;color:#b42318;background:#fff1f1;border-radius:7px;padding:4px 6px;margin-top:5px;display:inline-block}.safe{font-size:10px;color:#16823b;background:#edf9f1;border-radius:7px;padding:4px 6px;margin-top:5px;display:inline-block}
 .actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{flex:1;min-width:120px}.footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}.footer span{color:#777;font-weight:500}
 .modal{position:fixed;inset:0;background:#0005;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.open{display:flex}.sheet{background:#fff;width:100%;max-width:620px;border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto}.sheet h2{font-size:18px;margin:0 0 10px}.sheet .line{display:flex;gap:7px;margin-bottom:7px}.sheet input{flex:1;border:1px solid #ddd;border-radius:9px;padding:9px;font-size:16px}.history-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
-.sticky{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#111;color:#fff;border-radius:14px;padding:8px 13px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 5px 25px #0003;z-index:5}.sticky small{font-size:9px;color:#ccc}.sticky b{font-size:17px}
+.sticky{display:none}
 </style>
 </head>
 <body>
@@ -42,16 +42,14 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 
 <div class="card actions">
 <button class="gray" onclick="openHistory()">📋 Storico</button>
-<button class="gray" onclick="undo()">↩️ Annulla ultimo</button>
-<button class="gray" onclick="editBudgets()">⚙️ Budget categorie</button>
+<button class="gray" onclick="undo()">↩️ Annulla</button>
+<button class="gray" onclick="editBudgets()">⚙️ Categorie</button>
 </div>
 
 <div class="list" id="list"></div>
 
 <div class="card footer"><div><span>Budget categorie:</span> <b id="catTotal"></b></div><button class="gray" onclick="resetAll()">Azzera</button></div>
 </div>
-
-<div class="sticky"><div><small>DISPONIBILE</small><br><b id="stickyRemain"></b></div><div id="stickyStatus">✓ Entro budget</div></div>
 
 <div class="modal" id="modal"><div class="sheet"><div id="sheetContent"></div></div></div>
 
@@ -66,8 +64,7 @@ function totalSpent(){return data.cats.reduce((a,c)=>a+sum(c),0)}
 function render(){
  budget.value=data.budget;const total=totalSpent(),rem=data.budget-total;
  b.textContent=euro(data.budget);s.textContent=euro(total);r.textContent=euro(rem);r.className=rem<0?"red":"green";
- st.textContent=rem<0?"Superato":"OK";st.className=rem<0?"red":"green";stickyRemain.textContent=euro(rem);
- stickyStatus.textContent=rem<0?"⚠️ Budget superato":"✓ Entro budget";stickyStatus.className=rem<0?"red":"";
+ st.textContent=rem<0?"Superato":"OK";st.className=rem<0?"red":"green";
  catTotal.textContent=euro(data.cats.reduce((a,c)=>a+c.budget,0));list.innerHTML="";
  data.cats.forEach((c,i)=>{
   const sp=sum(c),rm=c.budget-sp,near=rm>=0&&rm<=c.budget*.15;
@@ -75,9 +72,29 @@ function render(){
   const history=c.items.length?`<div class="hist">${c.items.map((v,j)=>`${euro(v)} <button onclick="del(${i},${j})">×</button>`).join(" · ")}</div>`:"";
   let warning=rm<0?`<div class="alert">⚠️ Superato di ${euro(-rm)}</div>`:near?`<div class="alert">⚠️ Rimangono ${euro(rm)}</div>`:"";
   row.innerHTML=`<div class="rowtop"><div class="name">${c.name}</div><div class="numbers">B. ${euro(c.budget)} · <strong>S. ${euro(sp)}</strong> · <span class="${rm<0?"over":""}">R. ${euro(rm)}</span></div></div>
-  <div class="entry"><input class="price" id="p${i}" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo €" onkeydown="if(event.key==='Enter')add(${i})"><button class="plus" onclick="add(${i})">+</button></div>${warning}${history}`;
+  <div class="entry"><input class="price" id="p${i}" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Inserisci prezzo" oninput="preview(${i})" onkeydown="if(event.key==='Enter'){add(${i});event.preventDefault()}" onblur="commitBlur(${i})"><button class="plus" onclick="add(${i})">+</button></div>${warning}${history}`;
   list.appendChild(row);
  });
+}
+function preview(i){
+ const el=document.getElementById("p"+i);
+ if(!el)return;
+ const v=parseFloat(String(el.value).replace(",","."));
+ const row=el.closest(".row");
+ if(!row)return;
+ const c=data.cats[i],sp=sum(c),pending=isFinite(v)&&v>0?v:0,shown=sp+pending,rm=c.budget-shown;
+ const nums=row.querySelector(".numbers");
+ if(nums) nums.innerHTML=`B. ${euro(c.budget)} · <strong>S. ${euro(shown)}</strong> · <span class="${rm<0?"over":""}">R. ${euro(rm)}</span>`;
+ const total=totalSpent()+pending;
+ const rem=data.budget-total;
+ b.textContent=euro(data.budget);s.textContent=euro(total);r.textContent=euro(rem);r.className=rem<0?"red":"green";
+ st.textContent=rem<0?"Superato":"OK";st.className=rem<0?"red":"green";
+}
+function commitBlur(i){
+ const el=document.getElementById("p"+i);
+ if(!el)return;
+ const v=parseFloat(String(el.value).replace(",","."));
+ if(isFinite(v)&&v>0){add(i)}
 }
 function add(i){const el=document.getElementById("p"+i),v=parseFloat(String(el.value).replace(",","."));if(!isFinite(v)||v<=0)return;v=Math.round(v*100)/100;data.cats[i].items.push(v);data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:v});el.value="";save();render();setTimeout(()=>document.getElementById("p"+i)?.focus(),30)}
 function del(i,j){const v=data.cats[i].items[j];data.cats[i].items.splice(j,1);const k=data.history.findIndex(x=>x.cat===data.cats[i].name&&x.price===v);if(k>=0)data.history.splice(k,1);save();render()}

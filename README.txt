@@ -1,1 +1,1 @@
-Spesa Budget V2 — compatta per iPhone. Pubblicare tramite GitHub Pages.
+Versione corretta: calcolo live del prezzo mentre viene digitato, commit su invio/perdita del focus/+ e barra fissa rimossa per non coprire le categorie.
