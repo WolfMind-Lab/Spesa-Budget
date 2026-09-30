@@ -1,1 +1,1 @@
-Versione corretta: calcolo live del prezzo mentre viene digitato, commit su invio/perdita del focus/+ e barra fissa rimossa per non coprire le categorie.
+Spesa Budget V3 — pulsanti robusti, eventi delegati, calcolo live e compatibilità iPhone.
