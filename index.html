@@ -47,6 +47,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 .alertbox{padding:9px;border-radius:10px;background:#fff3cd;margin:7px 0;font-size:12px}
 .dangerbox{background:#f8d7da}.successbox{background:#d1e7dd}
 .searchbox{width:100%;box-sizing:border-box;margin:7px 0}
+.cat-note{font-size:11px;font-weight:400;color:#8a8a8f;line-height:1.25;margin-top:2px;max-width:95%;}
 </style>
 </head>
 <body>
@@ -89,11 +90,16 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 <script>
 (function(){
 "use strict";
-const DEFAULTS=[
+const DEFAULTS = [
  ["🛒 SPESA ALIMENTARE","🍝 Pasta, riso e cereali",15],["🛒 SPESA ALIMENTARE","🥫 Conserve e legumi",10],["🛒 SPESA ALIMENTARE","🥩 Carne, pesce e uova",30],["🛒 SPESA ALIMENTARE","🥛 Latte, yogurt e formaggi",20],["🛒 SPESA ALIMENTARE","🥦 Verdura",15],["🛒 SPESA ALIMENTARE","🍎 Frutta",10],["🛒 SPESA ALIMENTARE","🍞 Pane e prodotti da forno",8],["🛒 SPESA ALIMENTARE","☕ Colazione",8],["🛒 SPESA ALIMENTARE","🍪 Snack e dolci",7],["🛒 SPESA ALIMENTARE","🥤 Bevande",5],["🛒 SPESA ALIMENTARE","☕ Caffè e tè",4],["🛒 SPESA ALIMENTARE","🫒 Olio, aceto e condimenti",4],["🛒 SPESA ALIMENTARE","🧂 Sale, spezie e salse",2],["🛒 SPESA ALIMENTARE","🧊 Surgelati",2],
- ["🐱 GATTI","🐱 Cibo per gatti",12],["🐱 GATTI","🪣 Lettiera",6],["🐱 GATTI","🧴 Igiene",2],["🐱 GATTI","🧸 Accessori e giochi",2],["🐱 GATTI","🏥 Cura e salute",1],["🐱 GATTI","🏠 Accessori per la casa del gatto",1],["🐱 GATTI","💰 Riserva Gatti",1],
- ["🏠 CASA & PULIZIA","🧽 Pulizia della casa",5],["🏠 CASA & PULIZIA","🍽️ Pulizia cucina",5],["🏠 CASA & PULIZIA","👕 Bucato",5],["🏠 CASA & PULIZIA","🧻 Carta e prodotti assorbenti",5],["🏠 CASA & PULIZIA","🗑️ Rifiuti",3],["🏠 CASA & PULIZIA","🍽️ Monouso",3],["🏠 CASA & PULIZIA","🧹 Accessori per la pulizia",2],["🏠 CASA & PULIZIA","🧴 Prodotti per superfici",1],["🏠 CASA & PULIZIA","💰 Riserva Casa",6]
+ ["🐱 GATTI","🥣 Croccantini",12],["🐱 GATTI","🪣 Lettiera",13],
+ ["🏠 CASA & PULIZIA","🏠 Casa",15],["🏠 CASA & PULIZIA","🍽️ Tavola",10],["🏠 CASA & PULIZIA","👕 Lavatrice",10]
 ];
+const CATEGORY_NOTES = {
+ "🏠 Casa":"Detersivo per pavimenti · Carta igienica · Buste per l’immondizia",
+ "🍽️ Tavola":"Scottex · Piatti di plastica · Bicchieri · Detersivo per i piatti · Spugne",
+ "👕 Lavatrice":"Detersivo · Ammorbidente"
+};
 const $=id=>document.getElementById(id);
 const euro=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(n);
 const money=v=>Math.round(v*100)/100;
@@ -115,6 +121,34 @@ function load(){
         c.items=(c.items||[]).map(v=>typeof v==="number"?{price:v,qty:1,name:""}:Object.assign({name:""},v));
         if(!c.section)c.section="🛒 SPESA ALIMENTARE";
       });
+      // Migrazione V6: accorpa le vecchie categorie Gatti e Casa & Pulizia nelle nuove categorie semplificate.
+      const migrations={
+        "🐱 Cibo per gatti":"🥣 Croccantini",
+        "🧴 Igiene":"🥣 Croccantini",
+        "🧸 Accessori e giochi":"🪣 Lettiera",
+        "🏥 Cura e salute":"🪣 Lettiera",
+        "🏠 Accessori per la casa del gatto":"🪣 Lettiera",
+        "💰 Riserva Gatti":"🪣 Lettiera",
+        "🧽 Pulizia della casa":"🏠 Casa",
+        "🧻 Carta e prodotti assorbenti":"🏠 Casa",
+        "🗑️ Rifiuti":"🏠 Casa",
+        "🍽️ Pulizia cucina":"🍽️ Tavola",
+        "🍽️ Monouso":"🍽️ Tavola",
+        "🧹 Accessori per la pulizia":"🏠 Casa",
+        "🧴 Prodotti per superfici":"🏠 Casa",
+        "👕 Bucato":"👕 Lavatrice",
+        "💰 Riserva Casa":"🏠 Casa"
+      };
+      if(x.cats.some(c=>migrations[c.name])){
+        const freshCats=DEFAULTS.map(d=>({section:d[0],name:d[1],budget:d[2],items:[]}));
+        x.cats.forEach(c=>{
+          const target=migrations[c.name]||c.name;
+          const dst=freshCats.find(n=>n.name===target && n.section===c.section) || freshCats.find(n=>n.name===target);
+          if(dst){ dst.items.push(...(c.items||[])); }
+          else if(!freshCats.some(n=>n.name===c.name && n.section===c.section)){ freshCats.push(c); }
+        });
+        x.cats=freshCats;
+      }
       x.shoppingList=Array.isArray(x.shoppingList)?x.shoppingList:[];
       x.products=Array.isArray(x.products)?x.products:[];
       x.sessions=Array.isArray(x.sessions)?x.sessions:[];
@@ -156,7 +190,7 @@ function render(){
   const sp=catSum(c), rm=c.budget-sp;
   const row=document.createElement("div");row.className="row";
   row.innerHTML=
-   '<div class="rowtop"><div class="name">'+escapeHtml(c.name)+'</div>'+
+   '<div class="rowtop"><div class="name">'+escapeHtml(c.name)+(CATEGORY_NOTES[c.name]?'<div class="cat-note">'+escapeHtml(CATEGORY_NOTES[c.name])+'</div>':'')+'</div>'+
    '<div class="numbers">B. '+euro(c.budget)+' · <strong>S. '+euro(sp)+'</strong> · <span class="'+(rm<0?'over':'')+'">R. '+euro(rm)+'</span></div></div>'+
    '<div class="entry"><input class="qty" id="qty-'+i+'" type="number" inputmode="numeric" step="1" min="1" value="1" aria-label="Quantità">'+
    '<input class="price" id="price-'+i+'" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo unitario €">'+
