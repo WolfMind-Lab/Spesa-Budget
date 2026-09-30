@@ -51,7 +51,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 </head>
 <body>
 <div class="app">
-<header><h1>🛒 SPESA — BUDGET V5</h1><p class="subtitle">Inserisci il prezzo e premi +. Lista e prodotti sono opzionali.</p></header>
+<header><h1>🛒 SPESA — BUDGET V6</h1><p class="subtitle">Inserisci il prezzo e premi +. Lista e prodotti sono opzionali.</p></header>
 
 <div class="card top">
 <label>💰 Budget</label><input id="budgetInput" type="number" inputmode="decimal" step="0.01">
@@ -63,6 +63,15 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 <div class="metric"><small>Speso</small><b id="spentTotal"></b></div>
 <div class="metric"><small>Rimasto</small><b id="remainingTotal"></b></div>
 <div class="metric"><small>Stato</small><b id="statusTotal"></b></div>
+</div>
+
+<div class="v6grid">
+<button class="gray" id="statsBtn">📊 Statistiche</button>
+<button class="gray" id="pantryBtn">📦 Dispensa</button>
+<button class="gray" id="marketsBtn">🏪 Supermercati</button>
+<button class="gray" id="manageCatsBtn">🗂️ Categorie</button>
+<button class="gray" id="searchBtn">🔎 Ricerca</button>
+<button class="gray" id="backupBtn">💾 Backup</button>
 </div>
 
 <div class="card actions">
@@ -84,6 +93,7 @@ const DEFAULTS=[["🍝 Pasta, riso, farine",20],["🥫 Conserve e legumi",15],["
 const $=id=>document.getElementById(id);
 const euro=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(n);
 const money=v=>Math.round(v*100)/100;
+const KEY="spesaV6";
 let data=load(); let pendingNames={};
 
 function fresh(){return {
@@ -94,7 +104,8 @@ function fresh(){return {
 }}
 function load(){
  try{
-  const x=JSON.parse(localStorage.getItem("spesaV5"));
+  const raw=localStorage.getItem("spesaV6") || localStorage.getItem("spesaV5");
+  const x=JSON.parse(raw);
   if(x&&Array.isArray(x.cats)){
       x.cats.forEach(c=>{c.items=(c.items||[]).map(v=>typeof v==="number"?{price:v,qty:1,name:""}:Object.assign({name:""},v))});
       x.shoppingList=Array.isArray(x.shoppingList)?x.shoppingList:[];
@@ -108,7 +119,7 @@ function load(){
  }catch(e){}
  return fresh();
 }
-function save(){localStorage.setItem("spesaV5",JSON.stringify(data))}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function catSum(c){return c.items.reduce((a,v)=>a+Number(v.price||0)*Number(v.qty||1),0)}
 function totalSpent(){return data.cats.reduce((a,c)=>a+catSum(c),0)}
 function readPrice(i){const el=$("price-"+i);if(!el)return NaN;return parseFloat(String(el.value).trim().replace(",","."));}
@@ -193,7 +204,7 @@ function setBudget(){
 }
 function newShop(){
  if(confirm("Azzerare i prezzi e iniziare una nuova spesa?")){
-  data.cats.forEach(c=>c.items=[]);data.history.push({date:new Date().toLocaleString("it-IT"),cat:"NUOVA SPESA",price:0});
+  data.cats.forEach(c=>c.items=[]);
   save();render();
  }
 }
@@ -220,13 +231,13 @@ function openProducts(){
  $("modal").classList.add("open");
  $("addProduct").onclick=()=>{const n=prompt("Nome prodotto");if(!n||!n.trim())return;const p=prompt("Prezzo abituale (facoltativo)","");const v=parseFloat(String(p||"").replace(",","."));const ex=data.products.find(x=>x.name.toLowerCase()===n.trim().toLowerCase());if(ex){if(Number.isFinite(v)&&v>0)ex.price=money(v)}else data.products.push({name:n.trim(),price:Number.isFinite(v)&&v>0?money(v):0});save();openProducts()};
  $("closeModalBtn").onclick=closeModal;
- $("sheetContent").querySelectorAll("[data-use]").forEach(el=>el.onclick=()=>{const p=data.products[Number(el.dataset.use)];if(!p)return;const v=prompt("Prezzo attuale di "+p.name,p.price?p.price.toFixed(2).replace(".",","):"");if(v===null)return;const n=parseFloat(String(v).replace(",","."));if(!Number.isFinite(n)||n<=0)return;const c=prompt("Numero categoria (1-"+data.cats.length+")","1");const ci=Math.max(0,Math.min(data.cats.length-1,(parseInt(c,10)||1)-1));data.cats[ci].items.push({price:money(n),qty:1,name:p.name});data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[ci].name,price:money(n),qty:1,total:money(n),product:p.name});p.price=money(n);save();closeModal();render()});
+ $("sheetContent").querySelectorAll("[data-use]").forEach(el=>el.onclick=()=>{const p=data.products[Number(el.dataset.use)];if(!p)return;const v=prompt("Prezzo attuale di "+p.name,p.price?p.price.toFixed(2).replace(".",","):"");if(v===null)return;const n=parseFloat(String(v).replace(",","."));if(!Number.isFinite(n)||n<=0)return;const c=prompt("Numero categoria (1-"+data.cats.length+")","1");const ci=Math.max(0,Math.min(data.cats.length-1,(parseInt(c,10)||1)-1));data.cats[ci].items.push({price:money(n),qty:1,name:p.name});data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[ci].name,price:money(n),qty:1,total:money(n),product:p.name,market:""});p.price=money(n);save();closeModal();render()});
  $("sheetContent").querySelectorAll("[data-pdel]").forEach(el=>el.onclick=()=>{data.products.splice(Number(el.dataset.pdel),1);save();openProducts()});
 }
 
 
 function openV6Stats(){
- const total=money(totalSpent()), count=data.history.length, avg=count?money(total/count):0;
+ const total=money(totalSpent()), count=data.history.filter(x=>Number(x.total||0)>0).length, avg=count?money(total/count):0;
  const byCat=data.cats.map(c=>({name:c.name,total:catSum(c)})).filter(x=>x.total>0).sort((a,b)=>b.total-a.total);
  const byMarket={}; (data.history||[]).forEach(x=>{const m=x.market||"Non specificato";byMarket[m]=(byMarket[m]||0)+Number(x.total||0)});
  const marketRows=Object.entries(byMarket).sort((a,b)=>b[1]-a[1]).map(x=>'<div class="history-item"><span>'+escapeHtml(x[0])+'</span><b>'+euro(x[1])+'</b></div>').join("")||"<p>Nessun dato.</p>";
@@ -340,12 +351,12 @@ $("list").addEventListener("click",e=>{
 $("setBudgetBtn").onclick=setBudget;
 $("newShopBtn").onclick=newShop;
 $("historyBtn").onclick=openHistory;
-$("statsBtn").onclick=openV6Stats;
-$("pantryBtn").onclick=openV6Pantry;
-$("marketsBtn").onclick=openV6Markets;
-$("manageCatsBtn").onclick=openV6Categories;
-$("searchBtn").onclick=openV6Search;
-$("backupBtn").onclick=openV6Backup;
+if($("statsBtn"))$("statsBtn").onclick=openV6Stats;
+if($("pantryBtn"))$("pantryBtn").onclick=openV6Pantry;
+if($("marketsBtn"))$("marketsBtn").onclick=openV6Markets;
+if($("manageCatsBtn"))$("manageCatsBtn").onclick=openV6Categories;
+if($("searchBtn"))$("searchBtn").onclick=openV6Search;
+if($("backupBtn"))$("backupBtn").onclick=openV6Backup;
 $("listBtn").onclick=openShoppingList;
 $("productsBtn").onclick=openProducts;
 $("undoBtn").onclick=undo;

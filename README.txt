@@ -1,18 +1,7 @@
-SPESA — BUDGET V6
-
-Versione completa.
-Include:
-- Budget totale e budget per categoria
-- Categorie modificabili e personalizzabili
-- Lista della spesa
-- Archivio prodotti e prezzi
-- Quantità e inserimento rapido
-- Lista -> spesa
-- Dispensa
-- Supermercati
-- Ricerca
-- Statistiche
-- Storico
-- Avvisi budget e barra di avanzamento
-- Backup/importazione JSON
-- Salvataggio automatico
+SPESA — BUDGET V6 FIX
+- Pulsanti V6 presenti
+- Storage V6 con migrazione automatica dai dati V5
+- Corretto riferimento KEY mancante
+- Nuova spesa senza movimento fittizio
+- Statistiche senza movimenti a zero
+- Protezioni sui pulsanti V6
