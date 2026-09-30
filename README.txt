@@ -1,11 +1,9 @@
-SPESA — BUDGET V4
+SPESA — BUDGET V5
 
-Nuove funzioni:
-- Quantità opzionale: prezzo unitario × quantità
-- Modifica singola spesa
-- Eliminazione singola spesa
-- Riepilogo Fine spesa
-- Storico con quantità e totale
-- Salvataggio automatico locale
-
-Apri index.html su iPhone/Safari. Per aggiungerla alla Home: Condividi → Aggiungi alla schermata Home.
+Novità:
+- Lista della spesa con prodotti spuntabili
+- Prodotti frequenti con ultimo prezzo
+- Nome prodotto opzionale durante una spesa
+- Storico dei movimenti
+- Salvataggio delle spese complete
+- Tutte le funzioni della V4

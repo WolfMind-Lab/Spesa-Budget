@@ -24,11 +24,20 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 .alert{font-size:10px;color:#b42318;background:#fff1f1;border-radius:7px;padding:4px 6px;margin-top:5px;display:inline-block}
 .actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{flex:1;min-width:0}.footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}.footer span{color:#777;font-weight:500}
 .modal{position:fixed;inset:0;background:#0005;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.open{display:flex}.sheet{background:#fff;width:100%;max-width:620px;border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto}.sheet h2{font-size:18px;margin:0 0 10px}.sheet .line{display:flex;gap:7px;margin-bottom:7px}.sheet input{flex:1;border:1px solid #ddd;border-radius:9px;padding:9px;font-size:16px}.history-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
+
+.product-tools{display:flex;gap:7px;margin-bottom:8px}.product-tools button{flex:1}
+.checklist{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eee}
+.checklist:last-child{border-bottom:0}.checklist input{width:20px;height:20px}.pname{flex:1;font-size:14px}
+.pprice{font-size:12px;color:#666}.done{text-decoration:line-through;color:#999}
+.product-row{display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid #eee}
+.product-row:last-child{border-bottom:0}.product-row .pn{flex:1;font-size:13px}.product-row .pp{font-weight:700;font-size:12px}
+.smallbtn{height:28px!important;padding:0 8px!important;font-size:11px!important;white-space:nowrap}
+.badge{display:inline-block;background:#eee;border-radius:999px;padding:2px 6px;font-size:10px;color:#666}
 </style>
 </head>
 <body>
 <div class="app">
-<header><h1>🛒 SPESA — BUDGET</h1><p class="subtitle">Inserisci il prezzo e premi +. Il calcolo si aggiorna subito.</p></header>
+<header><h1>🛒 SPESA — BUDGET V5</h1><p class="subtitle">Inserisci il prezzo e premi +. Lista e prodotti sono opzionali.</p></header>
 
 <div class="card top">
 <label>💰 Budget</label><input id="budgetInput" type="number" inputmode="decimal" step="0.01">
@@ -43,7 +52,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 </div>
 
 <div class="card actions">
-<button class="gray" id="historyBtn">📋 Storico</button>
+<button class="gray" id="listBtn">📝 Lista</button><button class="gray" id="productsBtn">🏷️ Prodotti</button><button class="gray" id="historyBtn">📋 Storico</button>
 <button class="gray" id="undoBtn">↩️ Annulla</button>
 <button class="gray" id="editBtn">⚙️ Categorie</button><button class="gray" id="summaryBtn">🧾 Fine spesa</button>
 </div>
@@ -61,17 +70,23 @@ const DEFAULTS=[["🍝 Pasta, riso, farine",20],["🥫 Conserve e legumi",15],["
 const $=id=>document.getElementById(id);
 const euro=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(n);
 const money=v=>Math.round(v*100)/100;
-let data=load();
+let data=load(); let pendingNames={};
 
-function fresh(){return {budget:200,cats:DEFAULTS.map(x=>({name:x[0],budget:x[1],items:[]})),history:[]}}
+function fresh(){return {budget:200,cats:DEFAULTS.map(x=>({name:x[0],budget:x[1],items:[]})),history:[],shoppingList:[],products:[],sessions:[]}}
 function load(){
  try{
-  const x=JSON.parse(localStorage.getItem("spesaV4"));
-  if(x&&Array.isArray(x.cats)){x.cats.forEach(c=>{c.items=(c.items||[]).map(v=>typeof v==="number"?{price:v,qty:1}:v)});return x;}
+  const x=JSON.parse(localStorage.getItem("spesaV5"));
+  if(x&&Array.isArray(x.cats)){
+      x.cats.forEach(c=>{c.items=(c.items||[]).map(v=>typeof v==="number"?{price:v,qty:1,name:""}:Object.assign({name:""},v))});
+      x.shoppingList=Array.isArray(x.shoppingList)?x.shoppingList:[];
+      x.products=Array.isArray(x.products)?x.products:[];
+      x.sessions=Array.isArray(x.sessions)?x.sessions:[];
+      return x;
+    }
  }catch(e){}
  return fresh();
 }
-function save(){localStorage.setItem("spesaV4",JSON.stringify(data))}
+function save(){localStorage.setItem("spesaV5",JSON.stringify(data))}
 function catSum(c){return c.items.reduce((a,v)=>a+Number(v.price||0)*Number(v.qty||1),0)}
 function totalSpent(){return data.cats.reduce((a,c)=>a+catSum(c),0)}
 function readPrice(i){const el=$("price-"+i);if(!el)return NaN;return parseFloat(String(el.value).trim().replace(",","."));}
@@ -99,7 +114,7 @@ function render(){
    '<div class="numbers">B. '+euro(c.budget)+' · <strong>S. '+euro(sp)+'</strong> · <span class="'+(rm<0?'over':'')+'">R. '+euro(rm)+'</span></div></div>'+
    '<div class="entry"><input class="qty" id="qty-'+i+'" type="number" inputmode="numeric" step="1" min="1" value="1" aria-label="Quantità">'+
    '<input class="price" id="price-'+i+'" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo unitario €">'+
-   '<button class="plus" type="button" data-add="'+i+'">+</button></div>'+
+   '<button class="gray smallbtn" type="button" data-productname="'+i+'">Nome</button><button class="plus" type="button" data-add="'+i+'">+</button></div>'+
    (rm<0?'<div class="alert">⚠️ Superato di '+euro(-rm)+'</div>':'')+
    renderHistory(c,i);
   list.appendChild(row);
@@ -112,7 +127,7 @@ function render(){
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function renderHistory(c,i){
  if(!c.items.length)return "";
- return '<div class="hist">'+c.items.map((v,j)=>{const q=Number(v.qty||1),t=money(Number(v.price||0)*q);return euro(t)+(q>1?' ('+q+'× '+euro(v.price)+')':'')+' <button type="button" data-edit="'+i+','+j+'">✏️</button><button type="button" data-del="'+i+','+j+'">×</button>';}).join(" · ")+'</div>';
+ return '<div class="hist">'+c.items.map((v,j)=>{const q=Number(v.qty||1),t=money(Number(v.price||0)*q);return (v.name?escapeHtml(v.name)+' · ':'')+euro(t)+(q>1?' ('+q+'× '+euro(v.price)+')':'')+' <button type="button" data-edit="'+i+','+j+'">✏️</button><button type="button" data-del="'+i+','+j+'">×</button>';}).join(" · ")+'</div>';
 }
 function preview(i){
  const v=readPrice(i);
@@ -125,9 +140,10 @@ function preview(i){
 function add(i){
  const el=$("price-"+i),v=readPrice(i),q=readQty(i);
  if(!el||!Number.isFinite(v)||v<=0){el&&el.focus();return false}
- const value=money(v),item={price:value,qty:q};
+ const value=money(v),item={price:value,qty:q,name:pendingNames[i]||""}; delete pendingNames[i];
  data.cats[i].items.push(item);
- data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:value,qty:q,total:money(value*q)});
+ data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:value,qty:q,total:money(value*q),product:item.name||""});
+ if(item.name){const ex=(data.products||[]).find(p=>p.name.toLowerCase()===item.name.toLowerCase()); if(ex)ex.price=value; else data.products.push({name:item.name,price:value});}
  save();render();const next=$("price-"+i);if(next){next.focus();next.select()}return true;
 }
 function del(i,j){
@@ -162,16 +178,43 @@ function resetAll(){
  if(confirm("Azzera tutto e torna ai budget iniziali?")){data=fresh();save();render()}
 }
 function closeModal(){$("modal").classList.remove("open")}
+
+function openShoppingList(){
+ const items=data.shoppingList||[];
+ const body=items.length?items.map((x,i)=>'<div class="checklist"><input type="checkbox" '+(x.done?'checked':'')+' data-check="'+i+'"><div class="pname '+(x.done?'done':'')+'">'+escapeHtml(x.name)+'</div><div class="pprice">'+(x.price?euro(x.price):'')+'</div><button class="gray smallbtn" data-listdel="'+i+'">×</button></div>').join(""):'<p>Nessun prodotto nella lista.</p>';
+ $("sheetContent").innerHTML='<h2>📝 Lista della spesa</h2><div class="product-tools"><button id="addList">＋ Aggiungi</button><button class="gray" id="clearDone">✓ Completati</button></div>'+body+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
+ $("modal").classList.add("open");
+ $("addList").onclick=()=>{const n=prompt("Cosa vuoi comprare?");if(!n||!n.trim())return;const p=prompt("Prezzo indicativo (facoltativo)","");const v=parseFloat(String(p||"").replace(",","."));data.shoppingList.push({name:n.trim(),price:Number.isFinite(v)&&v>0?money(v):0,done:false});save();openShoppingList()};
+ $("clearDone").onclick=()=>{data.shoppingList=data.shoppingList.filter(x=>!x.done);save();openShoppingList()};
+ $("closeModalBtn").onclick=closeModal;
+ $("sheetContent").querySelectorAll("[data-check]").forEach(el=>el.onchange=()=>{data.shoppingList[Number(el.dataset.check)].done=el.checked;save();openShoppingList()});
+ $("sheetContent").querySelectorAll("[data-listdel]").forEach(el=>el.onclick=()=>{data.shoppingList.splice(Number(el.dataset.listdel),1);save();openShoppingList()});
+}
+function openProducts(){
+ const ps=data.products||[];
+ const body=ps.length?ps.map((p,i)=>'<div class="product-row"><div class="pn">'+escapeHtml(p.name)+'</div><div class="pp">'+(p.price?euro(p.price):'<span class="badge">senza prezzo</span>')+'</div><button class="smallbtn" data-use="'+i+'">Usa</button><button class="gray smallbtn" data-pdel="'+i+'">×</button></div>').join(""):'<p>Nessun prodotto salvato.</p>';
+ $("sheetContent").innerHTML='<h2>🏷️ Prodotti</h2><p style="font-size:12px;color:#777">Prodotti comprati spesso con ultimo prezzo registrato.</p><button id="addProduct" style="width:100%;margin-bottom:8px">＋ Nuovo prodotto</button>'+body+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
+ $("modal").classList.add("open");
+ $("addProduct").onclick=()=>{const n=prompt("Nome prodotto");if(!n||!n.trim())return;const p=prompt("Prezzo abituale (facoltativo)","");const v=parseFloat(String(p||"").replace(",","."));const ex=data.products.find(x=>x.name.toLowerCase()===n.trim().toLowerCase());if(ex){if(Number.isFinite(v)&&v>0)ex.price=money(v)}else data.products.push({name:n.trim(),price:Number.isFinite(v)&&v>0?money(v):0});save();openProducts()};
+ $("closeModalBtn").onclick=closeModal;
+ $("sheetContent").querySelectorAll("[data-use]").forEach(el=>el.onclick=()=>{const p=data.products[Number(el.dataset.use)];if(!p)return;const v=prompt("Prezzo attuale di "+p.name,p.price?p.price.toFixed(2).replace(".",","):"");if(v===null)return;const n=parseFloat(String(v).replace(",","."));if(!Number.isFinite(n)||n<=0)return;const c=prompt("Numero categoria (1-"+data.cats.length+")","1");const ci=Math.max(0,Math.min(data.cats.length-1,(parseInt(c,10)||1)-1));data.cats[ci].items.push({price:money(n),qty:1,name:p.name});data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[ci].name,price:money(n),qty:1,total:money(n),product:p.name});p.price=money(n);save();closeModal();render()});
+ $("sheetContent").querySelectorAll("[data-pdel]").forEach(el=>el.onclick=()=>{data.products.splice(Number(el.dataset.pdel),1);save();openProducts()});
+}
+
 function openHistory(){
- const h=data.history.length?data.history.slice().reverse().map(x=>'<div class="history-item"><span>'+escapeHtml(x.cat)+'<br><small>'+x.date+'</small></span><b>'+euro(x.total!=null?x.total:Number(x.price||0))+(Number(x.qty||1)>1?' <small>('+x.qty+'×)</small>':'')+'</b></div>').join(""):"<p>Nessun movimento ancora.</p>";
- $("sheetContent").innerHTML='<h2>📋 Storico</h2>'+h+'<button id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
+ const h=data.history.length?data.history.slice().reverse().map(x=>'<div class="history-item"><span>'+escapeHtml(x.product?x.product+' · '+x.cat:x.cat)+'<br><small>'+x.date+'</small></span><b>'+euro(x.total!=null?x.total:Number(x.price||0))+(Number(x.qty||1)>1?' <small>('+x.qty+'×)</small>':'')+'</b></div>').join(""):'<p>Nessun movimento ancora.</p>';
+ const s=(data.sessions||[]).slice().reverse();
+ const sessions=s.length?s.map(x=>'<div class="history-item"><span>🧾 '+x.date+'<br><small>Spesa completa</small></span><b>'+euro(x.total)+'</b></div>').join(""):'<p>Nessuna spesa completa salvata.</p>';
+ $("sheetContent").innerHTML='<h2>📋 Storico</h2><h3 style="font-size:14px;margin:4px 0 6px">Movimenti</h3>'+h+'<h3 style="font-size:14px;margin:14px 0 6px">Spese salvate</h3>'+sessions+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
  $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
 }
 function openFinalSummary(){
  const total=money(totalSpent()),rem=money(data.budget-total),used=data.cats.filter(c=>catSum(c)>0).sort((a,b)=>catSum(b)-catSum(a));
- const rows=used.length?used.map(c=>'<div class="history-item"><span>'+escapeHtml(c.name)+'</span><b>'+euro(catSum(c))+'</b></div>').join(""):"<p>Nessuna spesa registrata.</p>";
- $("sheetContent").innerHTML='<h2>🧾 Fine spesa</h2><div class="history-item"><span>Budget</span><b>'+euro(data.budget)+'</b></div><div class="history-item"><span>Totale speso</span><b>'+euro(total)+'</b></div><div class="history-item"><span>Rimanenza</span><b class="'+(rem<0?'red':'green')+'">'+euro(rem)+'</b></div><h3 style="font-size:14px;margin:14px 0 5px">Per categoria</h3>'+rows+'<button id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
- $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
+ const rows=used.length?used.map(c=>'<div class="history-item"><span>'+escapeHtml(c.name)+'</span><b>'+euro(catSum(c))+'</b></div>').join(""):'<p>Nessuna spesa registrata.</p>';
+ $("sheetContent").innerHTML='<h2>🧾 Fine spesa</h2><div class="history-item"><span>Budget</span><b>'+euro(data.budget)+'</b></div><div class="history-item"><span>Totale speso</span><b>'+euro(total)+'</b></div><div class="history-item"><span>Rimanenza</span><b class="'+(rem<0?'red':'green')+'">'+euro(rem)+'</b></div><h3 style="font-size:14px;margin:14px 0 5px">Per categoria</h3>'+rows+'<button id="saveSessionBtn" style="width:100%;margin-top:12px">💾 Salva questa spesa</button><button class="gray" id="closeModalBtn" style="width:100%;margin-top:7px">Chiudi</button>';
+ $("modal").classList.add("open");
+ $("saveSessionBtn").onclick=()=>{data.sessions.push({date:new Date().toLocaleString("it-IT"),budget:data.budget,total,remaining:rem});save();$("saveSessionBtn").textContent="✓ Salvata";$("saveSessionBtn").disabled=true};
+ $("closeModalBtn").onclick=closeModal;
 }
 function editBudgets(){
  const rows=data.cats.map((c,i)=>'<div class="line"><span style="flex:1;font-size:13px;padding:9px 0">'+escapeHtml(c.name)+'</span><input id="cb-'+i+'" type="number" inputmode="decimal" step=".01" value="'+c.budget+'"></div>').join("");
@@ -183,6 +226,7 @@ function saveBudgets(){
  save();closeModal();render();
 }
 $("list").addEventListener("click",e=>{
+ const nameBtn=e.target.closest("[data-productname]");if(nameBtn){const i=Number(nameBtn.dataset.productname);const n=prompt("Nome prodotto (facoltativo)");if(n&&n.trim()){pendingNames[i]=n.trim();nameBtn.textContent="✓ Nome"}return}
  const addBtn=e.target.closest("[data-add]");if(addBtn){add(Number(addBtn.dataset.add));return}
  const editBtn=e.target.closest("[data-edit]");if(editBtn){const p=editBtn.dataset.edit.split(",").map(Number);editItem(p[0],p[1]);return}
  const delBtn=e.target.closest("[data-del]");if(delBtn){const p=delBtn.dataset.del.split(",").map(Number);del(p[0],p[1])}
@@ -190,6 +234,8 @@ $("list").addEventListener("click",e=>{
 $("setBudgetBtn").onclick=setBudget;
 $("newShopBtn").onclick=newShop;
 $("historyBtn").onclick=openHistory;
+$("listBtn").onclick=openShoppingList;
+$("productsBtn").onclick=openProducts;
 $("undoBtn").onclick=undo;
 $("editBtn").onclick=editBudgets;
 $("summaryBtn").onclick=openFinalSummary;
