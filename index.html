@@ -10,110 +10,92 @@
 <title>Spesa — Budget</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
-*{box-sizing:border-box}
-body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(76px + env(safe-area-inset-bottom))}
-.app{max-width:620px;margin:auto}
-header{padding:5px 4px 10px}
-h1{font-size:22px;letter-spacing:-.4px;margin:0 0 2px}
-.subtitle{font-size:12px;color:#777;margin:0}
-.top{display:flex;align-items:center;gap:7px;background:#fff;border-radius:13px;padding:8px;margin-bottom:8px}
-.top label{font-size:12px;color:#666;font-weight:600}
-.top input{width:78px;height:34px;border:1px solid #d7d7dc;border-radius:9px;padding:5px 8px;font-size:16px}
-button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding:0 12px;font-weight:700;font-size:13px}
-.top .new{margin-left:auto;background:#e9e9ee;color:#222}
-.summary{display:flex;background:#fff;border-radius:13px;padding:10px 6px;margin-bottom:8px}
-.metric{flex:1;text-align:center;border-right:1px solid #eee}
-.metric:last-child{border:0}
-.metric small{display:block;color:#777;font-size:10px}
-.metric b{display:block;font-size:16px;margin-top:1px}
-.green{color:#16823b}.red{color:#c62828}
-.list{background:#fff;border-radius:13px;overflow:hidden}
-.row{padding:9px 10px;border-bottom:1px solid #eee}
-.row:last-child{border-bottom:0}
-.rowtop{display:flex;align-items:center;gap:6px}
-.name{font-size:14px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.numbers{font-size:11px;color:#666;white-space:nowrap}
-.numbers strong{color:#111}
-.over{color:#c62828!important}
-.entry{display:flex;gap:6px;margin-top:6px}
-.price{flex:1;min-width:0;height:34px;border:1px solid #d8d8dd;border-radius:9px;padding:5px 9px;font-size:16px}
-.plus{width:42px;padding:0;font-size:19px}
-.hist{font-size:10px;color:#888;margin-top:4px;white-space:nowrap;overflow-x:auto}
-.hist button{height:20px;padding:0 6px;font-size:10px;background:#eee;color:#333;margin-left:2px}
-.footer{background:#fff;border-radius:13px;padding:9px 10px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}
-.footer span{color:#777;font-weight:500}
-.reset{background:#fff0f0;color:#b42318;height:30px}
-.sticky{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#111;color:#fff;border-radius:14px;padding:9px 13px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 5px 25px #0003;z-index:5}
-.sticky small{font-size:10px;color:#ccc}.sticky b{font-size:17px}
-@media(min-width:700px){body{padding-left:20px;padding-right:20px}.sticky{left:20px;right:20px}}
+*{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(78px + env(safe-area-inset-bottom))}
+.app{max-width:620px;margin:auto}header{padding:5px 4px 9px}
+h1{font-size:22px;letter-spacing:-.4px;margin:0 0 2px}.subtitle{font-size:12px;color:#777;margin:0}
+.card{background:#fff;border-radius:13px;padding:9px 10px;margin-bottom:8px}
+.top{display:flex;align-items:center;gap:6px}.top label{font-size:12px;color:#666;font-weight:700}.top input{width:76px;height:34px;border:1px solid #d7d7dc;border-radius:9px;padding:5px 8px;font-size:16px}
+button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding:0 11px;font-weight:700;font-size:13px}button.gray{background:#e9e9ee;color:#222}
+.top .new{margin-left:auto}.summary{display:flex;background:#fff;border-radius:13px;padding:10px 5px;margin-bottom:8px}.metric{flex:1;text-align:center;border-right:1px solid #eee}.metric:last-child{border:0}.metric small{display:block;color:#777;font-size:10px}.metric b{display:block;font-size:16px;margin-top:1px}.green{color:#16823b}.red{color:#c62828}
+.list{background:#fff;border-radius:13px;overflow:hidden}.row{padding:9px 10px;border-bottom:1px solid #eee}.row:last-child{border-bottom:0}.rowtop{display:flex;align-items:center;gap:5px}.name{font-size:14px;font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.numbers{font-size:10px;color:#666;white-space:nowrap}.numbers strong{color:#111}.over{color:#c62828!important}
+.entry{display:flex;gap:6px;margin-top:6px}.price{flex:1;min-width:0;height:34px;border:1px solid #d8d8dd;border-radius:9px;padding:5px 9px;font-size:16px}.plus{width:42px;padding:0;font-size:19px}
+.hist{font-size:10px;color:#888;margin-top:4px;white-space:nowrap;overflow-x:auto}.hist button{height:20px;padding:0 6px;font-size:10px;background:#eee;color:#333;margin-left:2px}
+.alert{font-size:10px;color:#b42318;background:#fff1f1;border-radius:7px;padding:4px 6px;margin-top:5px;display:inline-block}.safe{font-size:10px;color:#16823b;background:#edf9f1;border-radius:7px;padding:4px 6px;margin-top:5px;display:inline-block}
+.actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{flex:1;min-width:120px}.footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}.footer span{color:#777;font-weight:500}
+.modal{position:fixed;inset:0;background:#0005;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.open{display:flex}.sheet{background:#fff;width:100%;max-width:620px;border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto}.sheet h2{font-size:18px;margin:0 0 10px}.sheet .line{display:flex;gap:7px;margin-bottom:7px}.sheet input{flex:1;border:1px solid #ddd;border-radius:9px;padding:9px;font-size:16px}.history-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
+.sticky{position:fixed;left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));max-width:600px;margin:auto;background:#111;color:#fff;border-radius:14px;padding:8px 13px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 5px 25px #0003;z-index:5}.sticky small{font-size:9px;color:#ccc}.sticky b{font-size:17px}
 </style>
 </head>
 <body>
 <div class="app">
-<header>
-<h1>🛒 SPESA — BUDGET</h1>
-<p class="subtitle">Inserisci solo il prezzo. Il resto si calcola da solo.</p>
-</header>
+<header><h1>🛒 SPESA — BUDGET</h1><p class="subtitle">Inserisci solo il prezzo. Il resto si calcola da solo.</p></header>
 
-<div class="top">
-<label>💰 Budget</label>
-<input id="budget" type="number" inputmode="decimal" step="0.01">
-<button onclick="setBudget()">Imposta</button>
-<button class="new" onclick="newShop()">↻ Nuova</button>
+<div class="card top">
+<label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step="0.01">
+<button onclick="setBudget()">Imposta</button><button class="gray new" onclick="newShop()">↻ Nuova</button>
 </div>
 
 <div class="summary">
-<div class="metric"><small>Budget</small><b id="b"></b></div>
-<div class="metric"><small>Speso</small><b id="s"></b></div>
-<div class="metric"><small>Rimasto</small><b id="r"></b></div>
-<div class="metric"><small>Stato</small><b id="st"></b></div>
+<div class="metric"><small>Budget</small><b id="b"></b></div><div class="metric"><small>Speso</small><b id="s"></b></div>
+<div class="metric"><small>Rimasto</small><b id="r"></b></div><div class="metric"><small>Stato</small><b id="st"></b></div>
+</div>
+
+<div class="card actions">
+<button class="gray" onclick="openHistory()">📋 Storico</button>
+<button class="gray" onclick="undo()">↩️ Annulla ultimo</button>
+<button class="gray" onclick="editBudgets()">⚙️ Budget categorie</button>
 </div>
 
 <div class="list" id="list"></div>
 
-<div class="footer">
-<div><span>Totale categorie:</span> <b id="catTotal"></b></div>
-<button class="reset" onclick="resetAll()">Azzera</button>
-</div>
+<div class="card footer"><div><span>Budget categorie:</span> <b id="catTotal"></b></div><button class="gray" onclick="resetAll()">Azzera</button></div>
 </div>
 
-<div class="sticky"><div><small>DISPONIBILE</small><br><b id="stickyRemain"></b></div><div id="stickyStatus">Entro budget</div></div>
+<div class="sticky"><div><small>DISPONIBILE</small><br><b id="stickyRemain"></b></div><div id="stickyStatus">✓ Entro budget</div></div>
+
+<div class="modal" id="modal"><div class="sheet"><div id="sheetContent"></div></div></div>
 
 <script>
-const base=[
-["🍝 Pasta, riso, farine",20],["🥫 Conserve e legumi",15],["🥩 Carne, pesce, uova",45],
-["🥛 Latte, yogurt, formaggi",25],["🥦 Verdura",25],["🍎 Frutta",20],
-["🍞 Pane",10],["☕ Colazione/snack",15],["🫒 Olio, sale, condimenti",10],["💰 Riserva",15]
-];
-let data; try{data=JSON.parse(localStorage.getItem("spesaCompact"))}catch(e){}
-if(!data)data={budget:200,cats:base.map(x=>({name:x[0],budget:x[1],items:[]}))};
+const defaults=[["🍝 Pasta, riso, farine",20],["🥫 Conserve e legumi",15],["🥩 Carne, pesce, uova",45],["🥛 Latte, yogurt, formaggi",25],["🥦 Verdura",25],["🍎 Frutta",20],["🍞 Pane",10],["☕ Colazione/snack",15],["🫒 Olio, sale, condimenti",10],["💰 Riserva",15]];
+let data;try{data=JSON.parse(localStorage.getItem("spesaV2"))}catch(e){}
+if(!data)data={budget:200,cats:defaults.map(x=>({name:x[0],budget:x[1],items:[]})),history:[]};
 const euro=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(n);
 const sum=c=>c.items.reduce((a,x)=>a+x,0);
-function save(){localStorage.setItem("spesaCompact",JSON.stringify(data))}
+function save(){localStorage.setItem("spesaV2",JSON.stringify(data))}
+function totalSpent(){return data.cats.reduce((a,c)=>a+sum(c),0)}
 function render(){
- budget.value=data.budget;
- const total=data.cats.reduce((a,c)=>a+sum(c),0),rem=data.budget-total;
- b.textContent=euro(data.budget);s.textContent=euro(total);r.textContent=euro(rem);
- r.className=rem<0?"red":"green";st.textContent=rem<0?"Superato":"OK";st.className=rem<0?"red":"green";
- stickyRemain.textContent=euro(rem);stickyRemain.className=rem<0?"red":"";
- stickyStatus.textContent=rem<0?"⚠️ Budget superato":"✓ Entro budget";
- catTotal.textContent=euro(data.cats.reduce((a,c)=>a+c.budget,0));
- list.innerHTML="";
+ budget.value=data.budget;const total=totalSpent(),rem=data.budget-total;
+ b.textContent=euro(data.budget);s.textContent=euro(total);r.textContent=euro(rem);r.className=rem<0?"red":"green";
+ st.textContent=rem<0?"Superato":"OK";st.className=rem<0?"red":"green";stickyRemain.textContent=euro(rem);
+ stickyStatus.textContent=rem<0?"⚠️ Budget superato":"✓ Entro budget";stickyStatus.className=rem<0?"red":"";
+ catTotal.textContent=euro(data.cats.reduce((a,c)=>a+c.budget,0));list.innerHTML="";
  data.cats.forEach((c,i)=>{
-   const sp=sum(c),rm=c.budget-sp;
-   const row=document.createElement("div");row.className="row";
-   const history=c.items.length?`<div class="hist">${c.items.map((v,j)=>`${euro(v)} <button onclick="del(${i},${j})">×</button>`).join(" · ")}</div>`:"";
-   row.innerHTML=`<div class="rowtop"><div class="name">${c.name}</div><div class="numbers">B. ${euro(c.budget)} · <strong>S. ${euro(sp)}</strong> · <span class="${rm<0?"over":""}">R. ${euro(rm)}</span></div></div>
-   <div class="entry"><input class="price" id="p${i}" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo €" onkeydown="if(event.key==='Enter')add(${i})"><button class="plus" onclick="add(${i})">+</button></div>${history}`;
-   list.appendChild(row);
+  const sp=sum(c),rm=c.budget-sp,near=rm>=0&&rm<=c.budget*.15;
+  const row=document.createElement("div");row.className="row";
+  const history=c.items.length?`<div class="hist">${c.items.map((v,j)=>`${euro(v)} <button onclick="del(${i},${j})">×</button>`).join(" · ")}</div>`:"";
+  let warning=rm<0?`<div class="alert">⚠️ Superato di ${euro(-rm)}</div>`:near?`<div class="alert">⚠️ Rimangono ${euro(rm)}</div>`:"";
+  row.innerHTML=`<div class="rowtop"><div class="name">${c.name}</div><div class="numbers">B. ${euro(c.budget)} · <strong>S. ${euro(sp)}</strong> · <span class="${rm<0?"over":""}">R. ${euro(rm)}</span></div></div>
+  <div class="entry"><input class="price" id="p${i}" type="number" inputmode="decimal" step="0.01" min="0" placeholder="Prezzo €" onkeydown="if(event.key==='Enter')add(${i})"><button class="plus" onclick="add(${i})">+</button></div>${warning}${history}`;
+  list.appendChild(row);
  });
 }
-function add(i){const el=document.getElementById("p"+i);const v=parseFloat(String(el.value).replace(",","."));if(!isFinite(v)||v<=0)return;data.cats[i].items.push(Math.round(v*100)/100);el.value="";save();render();setTimeout(()=>document.getElementById("p"+i)?.focus(),30)}
-function del(i,j){data.cats[i].items.splice(j,1);save();render()}
+function add(i){const el=document.getElementById("p"+i),v=parseFloat(String(el.value).replace(",","."));if(!isFinite(v)||v<=0)return;v=Math.round(v*100)/100;data.cats[i].items.push(v);data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:v});el.value="";save();render();setTimeout(()=>document.getElementById("p"+i)?.focus(),30)}
+function del(i,j){const v=data.cats[i].items[j];data.cats[i].items.splice(j,1);const k=data.history.findIndex(x=>x.cat===data.cats[i].name&&x.price===v);if(k>=0)data.history.splice(k,1);save();render()}
+function undo(){let found=null,ci=-1,ii=-1;for(let i=data.cats.length-1;i>=0&&!found;i--){if(data.cats[i].items.length){ci=i;ii=data.cats[i].items.length-1;found=data.cats[i].items[ii]}}if(found===null)return;data.cats[ci].items.splice(ii,1);data.history.pop();save();render()}
 function setBudget(){const v=parseFloat(String(budget.value).replace(",","."));if(isFinite(v)&&v>=0){data.budget=Math.round(v*100)/100;save();render()}}
-function newShop(){if(confirm("Azzerare i prezzi e iniziare una nuova spesa?")){data.cats.forEach(c=>c.items=[]);save();render()}}
-function resetAll(){if(confirm("Azzera tutto e torna a 200 €?")){data={budget:200,cats:base.map(x=>({name:x[0],budget:x[1],items:[]}))};save();render()}}
-render();
+function newShop(){if(confirm("Azzerare i prezzi e iniziare una nuova spesa?")){if(totalSpent()>0)data.history.push({date:new Date().toLocaleString("it-IT"),cat:"NUOVA SPESA",price:totalSpent()});data.cats.forEach(c=>c.items=[]);save();render()}}
+function resetAll(){if(confirm("Azzera tutto e torna ai budget iniziali?")){data={budget:200,cats:defaults.map(x=>({name:x[0],budget:x[1],items:[]})),history:[]};save();render()}}
+function closeModal(){modal.classList.remove("open")}
+function openHistory(){
+ let h=data.history.length?data.history.slice().reverse().map(x=>`<div class="history-item"><span>${x.cat}<br><small>${x.date}</small></span><b>${euro(x.price)}</b></div>`).join(""):"<p>Nessun movimento ancora.</p>";
+ sheetContent.innerHTML=`<h2>📋 Storico</h2>${h}<button onclick="closeModal()" style="width:100%;margin-top:12px">Chiudi</button>`;modal.classList.add("open")
+}
+function editBudgets(){
+ let rows=data.cats.map((c,i)=>`<div class="line"><span style="flex:1;font-size:13px;padding:9px 0">${c.name}</span><input id="cb${i}" type="number" inputmode="decimal" step=".01" value="${c.budget}"></div>`).join("");
+ sheetContent.innerHTML=`<h2>⚙️ Budget categorie</h2>${rows}<button onclick="saveBudgets()" style="width:100%;margin-top:6px">Salva budget</button><button class="gray" onclick="closeModal()" style="width:100%;margin-top:7px">Annulla</button>`;modal.classList.add("open")
+}
+function saveBudgets(){data.cats.forEach((c,i)=>{const v=parseFloat(document.getElementById("cb"+i).value);if(isFinite(v)&&v>=0)c.budget=Math.round(v*100)/100});save();closeModal();render()}
+modal.addEventListener("click",e=>{if(e.target===modal)closeModal()});render();
 </script>
 </body>
 </html>

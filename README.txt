@@ -1,1 +1,1 @@
-Spesa Budget — versione compatta per iPhone. Pubblicare index.html tramite GitHub Pages.
+Spesa Budget V2 — compatta per iPhone. Pubblicare tramite GitHub Pages.
