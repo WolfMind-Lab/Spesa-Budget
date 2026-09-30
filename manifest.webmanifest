@@ -1,0 +1,10 @@
+{
+  "name": "Spesa — Budget",
+  "short_name": "Spesa",
+  "description": "Calcolatore rapido per gestire il budget della spesa.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#f5f5f7",
+  "lang": "it-IT"
+}
