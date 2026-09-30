@@ -11,7 +11,7 @@
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(15px + env(safe-area-inset-bottom))}
-.app{max-width:620px;margin:auto}header{padding:5px 4px 9px}
+.app{max-width:620px;margin:auto}header{padding:5px 4px 9px;position:relative}.headerline{display:flex;align-items:center;gap:8px}.headerline h1{flex:1;margin:0}.settingsBtn{flex:0 0 auto;width:42px;height:42px;border-radius:12px;font-size:20px;padding:0}
 h1{font-size:22px;letter-spacing:-.4px;margin:0 0 2px}.subtitle{font-size:12px;color:#777;margin:0}
 .card{background:#fff;border-radius:13px;padding:9px 10px;margin-bottom:8px}
 .top{display:flex;align-items:center;gap:6px}.top label{font-size:12px;color:#666;font-weight:700}.top input{width:76px;height:34px;border:1px solid #d7d7dc;border-radius:9px;padding:5px 8px;font-size:16px}
@@ -52,7 +52,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 </head>
 <body>
 <div class="app">
-<header><h1>🛒 SPESA — BUDGET V6</h1><p class="subtitle">Inserisci il prezzo e premi +. Lista e prodotti sono opzionali.</p></header>
+<header><div class="headerline"><h1>🛒 SPESA — BUDGET V6</h1><button class="gray settingsBtn" id="settingsBtn" aria-label="Impostazioni">⚙️</button></div><p class="subtitle">Inserisci il prezzo e premi +. Lista e prodotti sono opzionali.</p></header>
 
 <div class="card top">
 <label>💰 Budget</label><input id="budgetInput" type="number" inputmode="decimal" step="0.01">
@@ -262,9 +262,16 @@ function renderHistory(c,i){
 }
 function preview(i){
  const v=readPrice(i);
- if(!Number.isFinite(v)||v<=0){updateSummary();return}
- const q=readQty(i),c=data.cats[i],shown=money(catSum(c)+v*q),rm=money(c.budget-shown);
- const row=$("price-"+i).closest(".row");
+ const c=data.cats[i];
+ const row=$("price-"+i)?.closest(".row");
+ if(!c||!row)return;
+ if(!Number.isFinite(v)||v<=0){
+   const actual=catSum(c),rm=money(c.budget-actual);
+   row.querySelector(".numbers").innerHTML='B. '+euro(c.budget)+' · <strong>S. '+euro(actual)+'</strong> · <span class="'+(rm<0?'over':'')+'">R. '+euro(rm)+'</span>';
+   updateSummary();
+   return;
+ }
+ const q=readQty(i),shown=money(catSum(c)+v*q),rm=money(c.budget-shown);
  row.querySelector(".numbers").innerHTML='B. '+euro(c.budget)+' · <strong>S. '+euro(shown)+'</strong> · <span class="'+(rm<0?'over':'')+'">R. '+euro(rm)+'</span>';
  updateSummary(i,v*q);
 }
@@ -279,14 +286,9 @@ function add(i){
   const normalized=item.name.trim().toLowerCase();
   const ex=(data.products||[]).find(p=>p.name.trim().toLowerCase()===normalized);
   if(ex)ex.price=value; else data.products.push({name:item.name,price:value});
-  // Sincronizza automaticamente la lista della spesa: se il prodotto acquistato
-  // corrisponde a un elemento della lista, viene segnato come comprato.
   (data.shoppingList||[]).forEach(x=>{
     if(String(x.name||"").trim().toLowerCase()===normalized){
-      x.done=true;
-      x.purchased=true;
-      x.purchasedAt=new Date().toLocaleString("it-IT");
-      x.purchasedPrice=value;
+      x.done=true; x.purchased=true; x.purchasedAt=new Date().toLocaleString("it-IT"); x.purchasedPrice=value;
     }
   });
 }
@@ -315,21 +317,46 @@ function setBudget(){
  if(Number.isFinite(v)&&v>=0){data.budget=money(v);save();render()}
 }
 function newShop(){
- if(confirm("Iniziare una nuova spesa?\\n\\nVerranno rimossi solo gli articoli della spesa corrente. Storico, lista della spesa, prodotti, dispensa, supermercati e budget resteranno invariati.")){
+ if(confirm("Iniziare una nuova spesa?\n\nVerranno rimossi solo gli articoli della spesa corrente. Storico, lista, prodotti, dispensa, supermercati e budget resteranno invariati.")){
   data.cats.forEach(c=>c.items=[]);
   save();render();
  }
 }
 function resetAll(){
- const ok=confirm("Ripristinare solo i budget iniziali?\\n\\nLe spese, lo storico, la lista della spesa, i prodotti, la dispensa, i supermercati e le altre modifiche NON verranno cancellati.");
+ const ok=confirm("Ripristinare solo i budget iniziali?\n\nLe spese, lo storico, la lista della spesa, i prodotti, la dispensa, i supermercati e le altre modifiche NON verranno cancellati.");
  if(!ok)return;
  const initialByKey=new Map(DEFAULTS.map(x=>[x[0]+"||"+x[1],x[2]]));
  data.budget=200;
- data.cats.forEach(c=>{
-   const initial=initialByKey.get(c.section+"||"+c.name);
-   if(initial!==undefined)c.budget=initial;
- });
+ data.cats.forEach(c=>{const initial=initialByKey.get(c.section+"||"+c.name);if(initial!==undefined)c.budget=initial;});
  save();render();
+}
+function deleteAllData(){
+ const first=confirm("Eliminare TUTTI i dati di Spesa — Budget?\n\nVerranno cancellati spese, storico, lista, prodotti, dispensa, supermercati, categorie personalizzate, budget e impostazioni.");
+ if(!first)return;
+ const second=confirm("Confermi definitivamente l'eliminazione di tutti i dati? Questa operazione non può essere annullata.");
+ if(!second)return;
+ localStorage.removeItem(KEY);
+ localStorage.removeItem("spesaV5");
+ data=fresh();
+ pendingNames={};
+ closeModal();
+ render();
+}
+function openSettings(){
+ $("sheetContent").innerHTML='<h2>⚙️ Impostazioni</h2>'+
+ '<p class="muted">Gestisci i dati e le impostazioni dell’app.</p>'+
+ '<div class="statbox"><b>💶 Valuta</b><div style="margin-top:5px">Euro (€)</div></div>'+
+ '<button id="settingsBackup" style="width:100%;margin-top:7px">💾 Gestisci backup</button>'+
+ '<button class="gray" id="settingsResetBudget" style="width:100%;margin-top:7px">↩️ Ripristina solo i budget iniziali</button>'+
+ '<div class="alertbox dangerbox" style="margin-top:14px"><b>Zona pericolosa</b><div style="margin-top:4px">Elimina definitivamente tutti i dati salvati nell’app.</div></div>'+
+ '<button class="gray" id="deleteAllDataBtn" style="width:100%;margin-top:7px">🗑️ Elimina tutti i dati</button>'+
+ '<p class="muted" style="margin-top:12px">Spesa — Budget V6</p>'+
+ '<button class="gray" id="closeModalBtn" style="width:100%;margin-top:7px">Chiudi</button>';
+ $("modal").classList.add("open");
+ $("settingsBackup").onclick=()=>openV6Backup();
+ $("settingsResetBudget").onclick=()=>{closeModal();resetAll()};
+ $("deleteAllDataBtn").onclick=deleteAllData;
+ $("closeModalBtn").onclick=closeModal;
 }
 function closeModal(){$("modal").classList.remove("open")}
 
@@ -472,6 +499,7 @@ $("list").addEventListener("click",e=>{
  const delBtn=e.target.closest("[data-del]");if(delBtn){const p=delBtn.dataset.del.split(",").map(Number);del(p[0],p[1])}
 });
 $("setBudgetBtn").onclick=setBudget;
+$("settingsBtn").onclick=openSettings;
 $("newShopBtn").onclick=newShop;
 $("historyBtn").onclick=openHistory;
 if($("statsBtn"))$("statsBtn").onclick=openV6Stats;
