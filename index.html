@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V6.4</title>
+<title>Spesa — Budget V6.5</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -23,7 +23,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V6.4</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V6.5</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -42,7 +42,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=6.4;
+const KEY="spesaBudgetData",VERSION=6.5;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","🍝 Pasta, riso, cereali e farine",20,"Pasta · Riso · Cereali · Farina · Semola · Zucchero"],
 ["🛒 SPESA ALIMENTARE","🥫 Conserve e legumi",15,"Passata · Pelati · Concentrato · Sughi · Ceci · Fagioli · Lenticchie · Piselli · Olive · Mais"],
@@ -59,13 +59,39 @@ const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","🫒 Olio, condimenti e spezie",6,"Olio · Aceto · Sale · Pepe · Spezie · Maionese · Ketchup · Salse"],
 ["🛒 SPESA ALIMENTARE","🧊 Surgelati",17.5,"Verdure surgelate · Patatine · Pesce surgelato · Gelati · Pizza · Altri surgelati"],
 ["🛒 SPESA ALIMENTARE","❄️ Frigorifero",17.5,"Insalata · Pasta fresca · Salumi · Pancetta · Burro · Dadi · Würstel · Pomodori · Zucca · Olive"],
-["🐱 GATTI","🥣 Croccantini",0,""],
-["🐱 GATTI","🪣 Lettiera",0,""],
+["🐱 GATTI","🥣 Croccantini",0,"Croccantini · Croccantini sterilizzati · Croccantini specifici"],
+["🐱 GATTI","🥫 Umido",0,"Bustine · Lattine · Vaschette · Multipack · Paté · Bocconcini · Gelatina"],
+["🐱 GATTI","🪣 Lettiera",0,"Lettiera agglomerante · Silicio · Vegetale · Non agglomerante"],
 ["🏠 CASA & PULIZIA","🏠 Casa",15,"Detersivo pavimenti · Carta igienica · Buste immondizia · detergenti"],
 ["🏠 CASA & PULIZIA","🍽️ Tavola",5,"Scottex · Piatti · Bicchieri · Detersivo piatti · Spugne"],
 ["🏠 CASA & PULIZIA","👕 Lavatrice",0,"Detersivo lavatrice · Ammorbidente"],
 ["🧴 IGIENE PERSONALE","🧴 Igiene personale",0,"Deodorante · Stick ascelle · Cotton fioc · Shampoo · Bagnoschiuma · Sapone mani · Dentifricio · Spazzolino · Assorbenti · Detergenti personali"]
 ];
+
+const PRODUCT_CATALOG={
+"🍝 Pasta, riso, cereali e farine":["Pasta","Pasta integrale","Pasta all'uovo","Riso","Riso integrale","Cous cous","Farro","Orzo","Cereali","Farina 00","Farina integrale","Farina di mais","Semola","Zucchero","Amido di mais"],
+"🥫 Conserve e legumi":["Passata","Polpa di pomodoro","Pomodori pelati","Concentrato di pomodoro","Sugo pronto","Ceci","Fagioli","Lenticchie","Piselli","Mais","Olive","Tonno in scatola","Legumi misti"],
+"🥩 Carne":["Pollo","Petto di pollo","Cosce di pollo","Tacchino","Manzo","Macinato","Hamburger","Salsiccia","Fettine","Spezzatino","Carne fresca","Affettati"],
+"🐟 Pesce":["Pesce fresco","Salmone","Merluzzo","Tonno","Pesce surgelato","Bastoncini di pesce","Frutti di mare"],
+"🥛 Latte, yogurt e formaggi":["Latte","Latte UHT","Yogurt","Mozzarella","Parmigiano","Grana","Formaggio","Ricotta","Formaggio spalmabile","Panna","Burro"],
+"🥦 Verdura":["Patate","Melanzane","Zucchine","Carote","Insalata","Pomodori","Cipolle","Aglio","Peperoni","Broccoli","Cavolfiore","Spinaci","Verdure miste"],
+"🍎 Frutta":["Mele","Banane","Arance","Mandarini","Pere","Uva","Kiwi","Fragole","Pesche","Albicocche","Anguria","Melone","Frutta mista"],
+"🍞 Pane e prodotti da forno":["Pane","Pane integrale","Focaccia","Panini","Piadine","Crackers","Grissini","Fette biscottate","Pancarrè"],
+"☕ Colazione":["Caffè","Latte","Cereali","Biscotti","Merendine","Marmellata","Crema spalmabile","Miele","Zucchero","Fette biscottate"],
+"🍪 Snack e dolci":["Patatine","Popcorn","Cioccolato","Caramelle","Gelato","Merendine","Biscotti","Dolci","Snack salati"],
+"🥤 Bevande":["Acqua","Coca-Cola","Pepsi","Aranciata","Gassosa","Tè freddo","Succhi di frutta","Bevanda energetica","Bevande analcoliche"],
+"☕ Caffè e tè":["Caffè","Caffè macinato","Caffè in capsule","Tè","Camomilla","Tisane"],
+"🫒 Olio, condimenti e spezie":["Olio extravergine","Olio di oliva","Olio di semi","Aceto","Sale","Pepe","Origano","Basilico","Spezie","Maionese","Ketchup","Senape","Salse"],
+"🧊 Surgelati":["Patatine","Verdure surgelate","Piselli","Spinaci","Pizza surgelata","Bastoncini di pesce","Pesce surgelato","Gelato","Surgelati misti"],
+"❄️ Frigorifero":["Uova","Affettati","Insalate pronte","Pasta fresca","Ravioli","Gnocchi","Hummus","Salse refrigerate","Burro","Würstel","Formaggi freschi","Prodotti freschi vari"],
+"🥣 Croccantini":["Croccantini","Croccantini sterilizzati","Croccantini specifici","Croccantini gatto adulto","Croccantini gatto cucciolo"],
+"🥫 Umido":["Bustine di umido","Lattine di umido","Vaschette di umido","Multipack umido","Paté","Bocconcini","Umido in gelatina","Umido specifico"],
+"🪣 Lettiera":["Lettiera agglomerante","Lettiera non agglomerante","Lettiera al silicio","Lettiera vegetale"],
+"🏠 Casa":["Detersivo pavimenti","Detergente superfici","Sgrassatore","Disinfettante","Carta igienica","Fazzoletti","Buste immondizia"],
+"🍽️ Tavola":["Scottex","Piatti di plastica","Bicchieri","Tovaglioli","Pellicola","Carta forno","Alluminio","Stuzzicadenti","Detersivo piatti","Spugne"],
+"👕 Lavatrice":["Detersivo lavatrice","Ammorbidente","Smacchiatore","Igienizzante lavatrice"],
+"🧴 Igiene personale":["Deodorante","Stick ascelle","Cotton fioc","Shampoo","Balsamo","Bagnoschiuma","Sapone mani","Sapone corpo","Dentifricio","Spazzolino","Collutorio","Dischetti struccanti","Assorbenti","Salviette","Crema corpo","Crema viso","Rasoi","Schiuma da barba"]
+};
 
 const $=id=>document.getElementById(id);
 const money=n=>Math.round(Number(n||0)*100)/100;
@@ -74,15 +100,18 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2);
 
 function fresh(){
- return {schemaVersion:VERSION,budget:200,cats:DEFAULTS.map(x=>({section:x[0],name:x[1],budget:x[2],note:x[3],selected:x[2]>0,items:[]})),history:[],receipts:[],currentReceiptId:null,shoppingList:[],products:[],supermarkets:[],pantry:[]};
+ return {schemaVersion:VERSION,budget:0,budgetConfigured:false,cats:DEFAULTS.map(x=>({section:x[0],name:x[1],budget:0,note:x[3],selected:false,items:[]})),history:[],receipts:[],currentReceiptId:null,shoppingList:[],products:[],supermarkets:[],pantry:[]};
 }
 function migrate(x){
  if(!x||!Array.isArray(x.cats))return fresh();
- x.budget=Number(x.budget??200);
+ const hadBudgetConfigured=typeof x.budgetConfigured === "boolean";
+ x.budget=Number(x.budget??0);
+ x.budgetConfigured=hadBudgetConfigured?x.budgetConfigured:false;
+ if(!hadBudgetConfigured){x.budget=0;x.budgetConfigured=false;}
  // Aggiunge automaticamente le nuove categorie alle installazioni precedenti.
  DEFAULTS.forEach(d=>{
    if(!x.cats.some(c=>c.name===d[1])){
-     x.cats.push({section:d[0],name:d[1],budget:d[2],note:d[3],selected:d[2]>0,items:[]});
+     x.cats.push({section:d[0],name:d[1],budget:0,note:d[3],selected:false,items:[]});
    }
  });
  x.history=Array.isArray(x.history)?x.history:[];
@@ -93,6 +122,7 @@ function migrate(x){
  x.supermarkets=Array.isArray(x.supermarkets)?x.supermarkets:[];
  x.pantry=Array.isArray(x.pantry)?x.pantry:[];
  x.cats.forEach(c=>{
+   if(!x.budgetConfigured){c.budget=0;c.selected=false;}
    if(c.selected===undefined)c.selected=!(c.name==="🍎 Frutta"||c.section==="🐱 GATTI"||c.name==="👕 Lavatrice");
    if(c.selected===false)c.budget=0;
    c.items=Array.isArray(c.items)?c.items.map(v=>typeof v==="number"?{id:uid(),name:"",qty:1,price:v,normalPrice:v,offerPrice:0,isOffer:false}:{...v,id:v.id||uid(),name:v.name||"",qty:Number(v.qty||1),price:Number(v.price||0),normalPrice:Number(v.normalPrice??v.price??0),offerPrice:Number(v.offerPrice||0),isOffer:Boolean(v.isOffer)}):[];
@@ -112,19 +142,19 @@ function close(){$("modal").classList.remove("open")}
 $("modal").onclick=e=>{if(e.target===$("modal"))close()};
 
 function render(){
- $("budget").value=data.budget;
- $("bTot").textContent=euro(data.budget);
+ $("budget").value=data.budgetConfigured?data.budget:"";
+ $("bTot").textContent=data.budgetConfigured?euro(data.budget):"Non impostato";
  $("sTot").textContent=euro(spent());
  const r=money(data.budget-spent());
- $("rTot").textContent=euro(r);$("rTot").className=r<0?"red":"green";
- $("status").textContent=r<0?"Superato":"OK";$("status").className=r<0?"red":"green";
+ $("rTot").textContent=data.budgetConfigured?euro(r):"—";$("rTot").className=!data.budgetConfigured?"":(r<0?"red":"green");
+ $("status").textContent=!data.budgetConfigured?"—":(r<0?"Superato":"OK");$("status").className=!data.budgetConfigured?"":(r<0?"red":"green");
  const cb=money(selectedCatBudget());
- $("catBudget").textContent=euro(cb)+(Math.abs(cb-data.budget)<.01?"":" ⚠️");
+ $("catBudget").textContent=data.budgetConfigured?euro(cb)+(Math.abs(cb-data.budget)<.01?"":" ⚠️"):"Non impostato";
  let out="",last="";
  data.cats.forEach((c,i)=>{
    if(c.section!==last){out+=`<div class="section-head">${esc(c.section)}</div>`;last=c.section}
    const s=catSum(c),rem=money(Number(c.budget||0)-s),ex=c.selected===false;
-   out+=`<div class="row"><div class="rowtop"><div class="name">${esc(c.name)} ${ex?'<span class="badge">Esclusa</span>':""}<div class="note">${esc(c.note)}</div></div><div class="nums">B. ${euro(c.budget)} · S. ${euro(s)} · <span class="${rem<0?"red":""}">R. ${euro(rem)}</span></div></div>`;
+   out+=`<div class="row"><div class="rowtop"><div class="name">${esc(c.name)} ${ex?'<span class="badge">Esclusa</span>':""}<div class="note">${esc(c.note)}</div></div><div class="nums">B. ${data.budgetConfigured?euro(c.budget):"—"} · S. ${euro(s)} · <span class="${rem<0?"red":""}">R. ${data.budgetConfigured?euro(rem):"—"}</span></div></div>`;
    if(!ex){
      out+=`<div class="entry"><select class="qty" id="q${i}">${Array.from({length:10},(_,n)=>`<option value="${n+1}">${n+1}</option>`).join("")}<option value="custom">Altro…</option></select><input class="price" id="p${i}" type="number" min="0" step=".01" inputmode="decimal" placeholder="Prezzo rapido €"><button class="gray" data-name="${i}">Nome</button><button class="plus" data-add="${i}">+</button></div>`;
      if(rem<0)out+=`<div class="alert">⚠️ Superato di ${euro(-rem)}</div>`;
@@ -138,11 +168,14 @@ function render(){
 
 function openPurchase(i){
  const c=data.cats[i];
- const list=data.products.filter(p=>p.category===c.name||!p.category);
+ const catalog=PRODUCT_CATALOG[c.name]||[];
+ const saved=data.products.filter(p=>p.category===c.name).map(p=>p.name);
+ const list=[...new Set([...catalog,...saved])];
  open(`<h2>🛒 Aggiungi a ${esc(c.name)}</h2>
- <label class="muted">Nome prodotto collegato alla categoria</label>
- <input id="pn" list="prodNames" placeholder="Scegli o scrivi il prodotto" style="width:100%;margin-top:4px">
- <datalist id="prodNames">${list.map(p=>`<option value="${esc(p.name)}">`).join("")}</datalist>
+ <label class="muted">Scegli o scrivi il prodotto</label>
+ <input id="pn" list="prodNames" placeholder="Scegli o scrivi il prodotto" style="width:100%;margin-top:4px" autocomplete="off">
+ <datalist id="prodNames">${list.map(p=>`<option value="${esc(p)}">`).join("")}</datalist>
+ <div class="muted" style="margin-top:5px">${list.length?`Prodotti disponibili: ${list.length}. Puoi anche scriverne uno nuovo.`:"Nessun prodotto preimpostato: puoi scriverne uno nuovo."}</div>
  <div class="two" style="margin-top:8px"><div><label class="muted">Prezzo normale €</label><input id="np" type="number" min="0" step=".01" style="width:100%"></div><div><label class="muted">Supermercato</label><select id="market" style="width:100%"><option value="">Non specificato</option>${data.supermarkets.map(m=>`<option>${esc(m)}</option>`).join("")}</select></div></div>
  <div class="check"><input id="isOffer" type="checkbox"><div class="grow"><b>🏷️ È in offerta</b><div class="muted">Il prezzo dell'offerta sostituisce quello normale nel calcolo.</div></div></div>
  <div class="offerbox" id="offerBox" style="display:none"><label class="muted">Prezzo dell'offerta €</label><input id="op" type="number" min="0" step=".01" style="width:100%"></div>
@@ -154,7 +187,7 @@ function openPurchase(i){
  const preview=()=>{const n=parseFloat(String($("np").value||0).replace(",",".")),o=parseFloat(String($("op").value||0).replace(",",".")),p=$("isOffer").checked&&o>0?o:n,q=Math.max(1,parseInt($("customQty").value||qty,10)||qty);$("totalPreview").innerHTML=`Totale: <b>${euro(money(p*q))}</b>`;return{p,n,o,q}};
  $("isOffer").onchange=()=>{$("offerBox").style.display=$("isOffer").checked?"block":"none";preview()};
  ["np","op","customQty"].forEach(x=>$(x).oninput=preview);
- $("pn").onchange=()=>{const p=data.products.find(x=>x.name.toLowerCase()=== $("pn").value.trim().toLowerCase());if(p){$("np").value=p.price||"";if(p.offerPrice)$("op").value=p.offerPrice;if(p.lastMarket)$("market").value=p.lastMarket;preview()}};
+ $("pn").onchange=()=>{const name=$("pn").value.trim();const p=data.products.find(x=>x.name.toLowerCase()===name.toLowerCase());if(p){$("np").value=p.price||"";if(p.offerPrice)$("op").value=p.offerPrice;if(p.lastMarket)$("market").value=p.lastMarket;preview()}};
  $("sheet").querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>{$("sheet").querySelectorAll("[data-q]").forEach(z=>z.classList.remove("sel"));b.classList.add("sel");qty=Number(b.dataset.q);$("customQty").value="";preview()});
  $("cancel").onclick=close;
  $("savePurchase").onclick=()=>{
@@ -173,7 +206,6 @@ function openPurchase(i){
  };
  preview();
 }
-
 function editPurchase(i,j){
  const c=data.cats[i],x=c.items[j],h=data.history.find(z=>z.id===x.id);
  open(`<h2>✏️ Modifica acquisto</h2><div class="line"><input id="eq" type="number" min="1" value="${x.qty}"><input id="ep" type="number" step=".01" value="${x.price}"></div><button id="saveEdit" style="width:100%">Salva</button><button class="gray" id="deleteEdit" style="width:100%;margin-top:6px">🗑️ Elimina</button><button class="gray" id="cancel" style="width:100%;margin-top:6px">Annulla</button>`);
@@ -182,6 +214,7 @@ function editPurchase(i,j){
 }
 
 function budgetCats(){
+ if(!data.budgetConfigured){alert("Imposta prima il budget generale.");return}
  open(`<h2>🎯 Distribuisci il budget</h2><div class="stat">Budget generale: <b>${euro(data.budget)}</b><br>Totale categorie selezionate: <b id="mTotal">${euro(selectedCatBudget())}</b></div>
  <div class="actions"><button class="gray small" id="auto">⚖️ Ripartisci</button><button class="gray small" id="on">Seleziona tutte</button><button class="gray small" id="off">Deseleziona tutte</button></div>
  <div id="budgetRows">${data.cats.map((c,i)=>`<div class="check"><input type="checkbox" id="sel${i}" ${c.selected!==false?"checked":""}><div class="grow"><b>${esc(c.name)}</b><div class="muted">${esc(c.section)}</div></div><input id="bud${i}" type="number" min="0" step=".01" value="${c.selected===false?0:c.budget}" style="width:88px"></div>`).join("")}</div>
@@ -196,13 +229,10 @@ function budgetCats(){
 }
 
 function setBudget(){
- const v=Number(String($("budget").value).replace(",","."));
- if(!Number.isFinite(v)||v<0)return;
- const old=data.budget;data.budget=money(v);
- if(Math.abs(selectedCatBudget()-old)<.01){
-   const chosen=data.cats.filter(c=>c.selected!==false);
-   if(chosen.length){const ratio=v/(old||1);chosen.forEach(c=>c.budget=money(c.budget*ratio));let diff=money(v-selectedCatBudget());chosen[chosen.length-1].budget=money(chosen[chosen.length-1].budget+diff)}
- }
+ const raw=$("budget").value.trim();
+ const v=Number(String(raw).replace(",","."));
+ if(raw===""||!Number.isFinite(v)||v<=0){alert("Inserisci un budget generale maggiore di 0.");return}
+ data.budget=money(v);data.budgetConfigured=true;
  save();render();
 }
 
@@ -258,7 +288,7 @@ function history(){
 
 function stats(){
  const by=data.cats.filter(c=>catSum(c)>0).sort((a,b)=>catSum(b)-catSum(a));
- open(`<h2>📊 Statistiche</h2><div class="stat">Spesa totale: <b>${euro(spent())}</b><br>Movimenti: <b>${data.history.length}</b><br>Scontrini salvati: <b>${data.receipts.length}</b><br>Rimanenza budget: <b>${euro(data.budget-spent())}</b></div><h3>Categorie</h3>${by.map(c=>`<div class="item"><span>${esc(c.name)}</span><b>${euro(catSum(c))}</b></div>`).join("")||"<p>Nessun dato.</p>"}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);$("close").onclick=close;
+ open(`<h2>📊 Statistiche</h2><div class="stat">Spesa totale: <b>${euro(spent())}</b><br>Movimenti: <b>${data.history.length}</b><br>Scontrini salvati: <b>${data.receipts.length}</b><br>Rimanenza budget: <b>${data.budgetConfigured?euro(data.budget-spent()):"Non impostato"}</b></div><h3>Categorie</h3>${by.map(c=>`<div class="item"><span>${esc(c.name)}</span><b>${euro(catSum(c))}</b></div>`).join("")||"<p>Nessun dato.</p>"}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);$("close").onclick=close;
 }
 
 function supermarkets(){
@@ -290,12 +320,14 @@ function cats(){
 
 function backup(){
  open(`<h2>💾 Backup</h2><p class="muted">Salva budget, categorie, acquisti, lista, prodotti, offerte, supermercati, dispensa e storico.</p><button id="export" style="width:100%">⬇️ Esporta backup</button><button class="gray" id="imp" style="width:100%;margin-top:6px">⬆️ Importa backup</button><input id="file" type="file" accept=".json,application/json" hidden><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
- $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v6.4-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
+ $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v6.5-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V6.4</b><div class="muted">Dati salvati localmente sul dispositivo.</div></div><button id="reset" style="width:100%">↺ Ripristina categorie e budget predefiniti</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
- $("close").onclick=close;$("reset").onclick=()=>{if(confirm("Ripristinare i budget V6.2? Gli acquisti non vengono cancellati.")){DEFAULTS.forEach(d=>{const c=data.cats.find(x=>x.name===d[1]);if(c){c.budget=d[2];c.selected=d[2]>0;c.note=d[3]}});save();close();render()}};$("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V6.5</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ $("close").onclick=close;
+ $("reset").onclick=()=>{if(confirm("Azzera il budget generale e tutti i budget delle categorie? Gli scontrini e i prodotti NON verranno cancellati.")){data.budget=0;data.budgetConfigured=false;data.cats.forEach(c=>{c.budget=0;c.selected=false});save();close();render()}};
+ $("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
 }
 
 $("main").onclick=e=>{const a=e.target.closest("[data-add]"),n=e.target.closest("[data-name]"),ed=e.target.closest("[data-edit]");if(a||n)openPurchase(+(a?.dataset.add??n.dataset.name));else if(ed){const [i,j]=ed.dataset.edit.split(",").map(Number);editPurchase(i,j)}};
