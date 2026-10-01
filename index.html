@@ -23,7 +23,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 .hist{font-size:10px;color:#888;margin-top:4px;white-space:nowrap;overflow-x:auto}.hist button{height:20px;padding:0 6px;font-size:10px;background:#eee;color:#333;margin-left:2px}
 .alert{font-size:10px;color:#b42318;background:#fff1f1;border-radius:7px;padding:4px 6px;margin-top:5px;display:inline-block}
 .actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{flex:1;min-width:0}.footer{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:700}.footer span{color:#777;font-weight:500}
-.modal{position:fixed;inset:0;background:#0005;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.open{display:flex}.sheet{background:#fff;width:100%;max-width:620px;border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto}.sheet h2{font-size:18px;margin:0 0 10px}.sheet .line{display:flex;gap:7px;margin-bottom:7px}.sheet input{flex:1;border:1px solid #ddd;border-radius:9px;padding:9px;font-size:16px}.history-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
+.modal{position:fixed;inset:0;background:#0005;display:none;align-items:flex-end;justify-content:center;z-index:20}.modal.open{display:flex}.sheet{background:#fff;width:100%;max-width:620px;border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));max-height:82vh;overflow:auto}.modal.search-open{align-items:flex-start;padding-top:env(safe-area-inset-top)}.modal.search-open .sheet{max-height:calc(100dvh - env(safe-area-inset-top) - 8px);border-radius:0 0 18px 18px;padding-bottom:calc(12px + env(safe-area-inset-bottom));overflow:auto}.sheet h2{font-size:18px;margin:0 0 10px}.sheet .line{display:flex;gap:7px;margin-bottom:7px}.sheet input{flex:1;border:1px solid #ddd;border-radius:9px;padding:9px;font-size:16px}.history-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
 
 .product-tools{display:flex;gap:7px;margin-bottom:8px}.product-tools button{flex:1}
 .checklist{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #eee}
@@ -473,8 +473,9 @@ function openV6Categories(){
  });
 }
 function openV6Search(){
+ $("modal").classList.remove("search-open");
  $("sheetContent").innerHTML='<h2>🔎 Ricerca</h2><input class="searchbox" id="globalSearch" placeholder="Cerca prodotto, categoria, supermercato..."><div id="searchResults"></div><button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
- $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
+ $("modal").classList.add("open","search-open");$("closeModalBtn").onclick=closeModal;
  const run=()=>{
    const q=$("globalSearch").value.trim().toLowerCase();
    const results=[];
