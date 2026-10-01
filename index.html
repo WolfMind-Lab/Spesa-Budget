@@ -651,9 +651,35 @@ function setBudget(){
 }
 
 function list(){
- const rows=data.shoppingList.map((x,i)=>`<div class="check"><input type="checkbox" data-ch="${i}" ${x.done?"checked":""}><div class="grow ${x.done?"done":""}"><b>${esc(x.name)}</b><div class="muted">Quantità: ${x.qty||1}${x.purchasedPrice?` · acquistato a ${euro(x.purchasedPrice)}`:""}</div></div><button class="gray small" data-rm="${i}">×</button></div>`).join("")||"<p>Lista vuota.</p>";
- open(`<h2>📝 Lista della spesa</h2><div class="line"><input id="ln" placeholder="Nome prodotto"><select id="lq">${Array.from({length:10},(_,n)=>`<option>${n+1}</option>`).join("")}</select></div><button id="addL" style="width:100%">＋ Aggiungi alla lista</button>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
- $("close").onclick=close;$("addL").onclick=()=>{const n=$("ln").value.trim(),q=Number($("lq").value);if(!n)return;if(!data.shoppingList.some(x=>x.name.toLowerCase()===n.toLowerCase()&&!x.done))data.shoppingList.push({name:n,qty:q,done:false});save();list()};
+ const allCatalog=[];
+ Object.entries(PRODUCT_CATALOG||{}).forEach(([cat,items])=>items.forEach(name=>allCatalog.push({name,category:cat}))); 
+ data.products.forEach(p=>allCatalog.push({name:p.name,category:p.category||"Prodotti salvati"}));
+ const unique=[]; const seen=new Set();
+ allCatalog.forEach(x=>{const k=x.name.trim().toLowerCase();if(k&&!seen.has(k)){seen.add(k);unique.push(x)}});
+ unique.sort((a,b)=>a.name.localeCompare(b.name,'it'));
+ const rows=data.shoppingList.map((x,i)=>`<div class="check"><input type="checkbox" data-ch="${i}" ${x.done?"checked":""}><div class="grow ${x.done?"done":""}"><b>${esc(x.name)}</b><div class="muted">Quantità: ${x.qty||1}${x.category?` · ${esc(x.category)}`:""}${x.purchasedPrice?` · acquistato a ${euro(x.purchasedPrice)}`:""}</div></div><button class="gray small" data-rm="${i}">×</button></div>`).join("")||"<p>Lista vuota.</p>";
+ open(`<h2>📝 Lista della spesa</h2>
+ <label class="muted">Scegli un prodotto già presente nell'app oppure scrivine uno nuovo</label>
+ <div class="product-picker" style="margin-top:4px">
+   <input id="ln" placeholder="Cerca o scegli il prodotto" autocomplete="off" autocapitalize="sentences" spellcheck="false">
+   <div id="listProductOptions" class="product-options" role="listbox"></div>
+ </div>
+ <div class="line" style="margin-top:7px"><select id="lq">${Array.from({length:10},(_,n)=>`<option>${n+1}</option>`).join("")}</select><button class="gray" id="clearListProduct">✕ Pulisci</button></div>
+ <div class="muted" style="margin-top:5px">${unique.length} prodotti disponibili. Tocca la barra per vedere l'elenco completo.</div>
+ <button id="addL" style="width:100%;margin-top:7px">＋ Aggiungi alla lista</button>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
+ const input=$("ln"), options=$("listProductOptions");
+ const renderOptions=()=>{
+   const q=input.value.trim().toLowerCase();
+   const filtered=unique.filter(x=>!q||x.name.toLowerCase().includes(q)||x.category.toLowerCase().includes(q)).slice(0,150);
+   options.innerHTML=filtered.length?filtered.map(x=>`<button type="button" class="product-option" data-list-product="${esc(x.name)}" data-list-category="${esc(x.category)}"><b>${esc(x.name)}</b><span class="muted" style="display:block;font-size:12px;font-weight:400">${esc(x.category)}</span></button>`).join(""):(q?`<div class="product-empty">Nessun prodotto trovato. Puoi aggiungere “${esc(input.value.trim())}” come nuovo prodotto.</div>`:`<div class="product-empty">Nessun prodotto disponibile.</div>`);
+   options.querySelectorAll('[data-list-product]').forEach(b=>b.onclick=()=>{input.value=b.dataset.listProduct;input.dataset.category=b.dataset.listCategory;options.classList.remove('open');input.focus()});
+ };
+ input.onfocus=()=>{renderOptions();options.classList.add('open')};
+ input.oninput=()=>{renderOptions();options.classList.add('open')};
+ input.onkeydown=e=>{if(e.key==='Escape')options.classList.remove('open');else if(e.key==='Enter'){const first=options.querySelector('[data-list-product]');if(first){e.preventDefault();input.value=first.dataset.listProduct;input.dataset.category=first.dataset.listCategory;options.classList.remove('open')}}};
+ $("clearListProduct").onclick=()=>{input.value="";delete input.dataset.category;input.focus();renderOptions();options.classList.add('open')};
+ $("close").onclick=close;
+ $("addL").onclick=()=>{const n=input.value.trim(),q=Number($("lq").value);if(!n){alert("Scegli un prodotto dall'elenco oppure scrivine uno nuovo.");return}if(!data.shoppingList.some(x=>x.name.toLowerCase()===n.toLowerCase()&&!x.done))data.shoppingList.push({name:n,qty:q,category:input.dataset.category||"",done:false});save();list()};
  $("sheet").querySelectorAll("[data-ch]").forEach(e=>e.onchange=()=>{data.shoppingList[+e.dataset.ch].done=e.checked;save();list()});
  $("sheet").querySelectorAll("[data-rm]").forEach(e=>e.onclick=()=>{data.shoppingList.splice(+e.dataset.rm,1);save();list()});
 }
