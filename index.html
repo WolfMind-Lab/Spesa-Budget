@@ -327,22 +327,40 @@ function add(i){
 }
  save();render();const next=$("price-"+i);if(next){next.focus();next.select()}return true;
 }
+function pantryAdjustForPurchase(name,delta){
+ if(!name)return;
+ const normalized=name.trim().toLowerCase();
+ const pantryItem=(data.pantry||[]).find(x=>String(x.name||"").trim().toLowerCase()===normalized);
+ if(pantryItem){ pantryItem.qty=Math.max(0,Number(pantryItem.qty||0)+Number(delta||0)); }
+}
+function listPurchaseState(name,done){
+ if(!name)return;
+ const normalized=name.trim().toLowerCase();
+ (data.shoppingList||[]).forEach(x=>{
+   if(String(x.name||"").trim().toLowerCase()===normalized){
+     x.done=!!done;
+     if(!done){delete x.purchased;delete x.purchasedAt;delete x.purchasedPrice;}
+   }
+ });
+}
 function del(i,j){
  const c=data.cats[i];if(!c||j<0||j>=c.items.length)return;
  const item=c.items[j];c.items.splice(j,1);
- const k=data.history.findIndex(x=>x.cat===c.name&&Number(x.price)===Number(item.price)&&Number(x.qty||1)===Number(item.qty||1));
- if(k>=0)data.history.splice(k,1);save();render();
+ const k=data.history.findIndex(x=>x.cat===c.name&&Number(x.price)===Number(item.price)&&Number(x.qty||1)===Number(item.qty||1)&&String(x.product||"")===String(item.name||""));
+ if(k>=0)data.history.splice(k,1);
+ if(item.name){pantryAdjustForPurchase(item.name,-Number(item.qty||1));listPurchaseState(item.name,false);}
+ save();render();
 }
 function editItem(i,j){
  const item=data.cats[i]?.items[j];if(!item)return;
  $("sheetContent").innerHTML='<h2>✏️ Modifica spesa</h2><div class="line"><input id="editQty" type="number" min="1" step="1" value="'+(item.qty||1)+'" placeholder="Quantità"><input id="editPrice" type="number" min="0" step="0.01" value="'+item.price+'" placeholder="Prezzo unitario €"></div><button id="saveItem" style="width:100%">Salva modifica</button><button class="gray" id="deleteItem" style="width:100%;margin-top:7px">🗑️ Elimina</button><button class="gray" id="cancelItem" style="width:100%;margin-top:7px">Annulla</button>';
  $("modal").classList.add("open");$("cancelItem").onclick=closeModal;
  $("deleteItem").onclick=()=>{closeModal();del(i,j)};
- $("saveItem").onclick=()=>{const p=parseFloat(String($("editPrice").value).replace(",",".")),q=parseInt($("editQty").value,10);if(!Number.isFinite(p)||p<=0||!Number.isFinite(q)||q<1)return;item.price=money(p);item.qty=q;save();closeModal();render()};
+ $("saveItem").onclick=()=>{const p=parseFloat(String($("editPrice").value).replace(",",".")),q=parseInt($("editQty").value,10);if(!Number.isFinite(p)||p<=0||!Number.isFinite(q)||q<1)return;const oldQty=Number(item.qty||1),delta=q-oldQty;item.price=money(p);item.qty=q;if(item.name&&delta)pantryAdjustForPurchase(item.name,delta);save();closeModal();render()};
 }
 function undo(){
  for(let i=data.cats.length-1;i>=0;i--){
-  if(data.cats[i].items.length){data.cats[i].items.pop();data.history.pop();save();render();return}
+  if(data.cats[i].items.length){const item=data.cats[i].items.pop();data.history.pop();if(item&&item.name){pantryAdjustForPurchase(item.name,-Number(item.qty||1));listPurchaseState(item.name,false);}save();render();return}
  }
 }
 function setBudget(){
