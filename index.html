@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V6.3</title>
+<title>Spesa — Budget V6.4</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -23,7 +23,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V6.3</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V6.4</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -42,7 +42,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=6.3;
+const KEY="spesaBudgetData",VERSION=6.4;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","🍝 Pasta, riso, cereali e farine",20,"Pasta · Riso · Cereali · Farina · Semola · Zucchero"],
 ["🛒 SPESA ALIMENTARE","🥫 Conserve e legumi",15,"Passata · Pelati · Concentrato · Sughi · Ceci · Fagioli · Lenticchie · Piselli · Olive · Mais"],
@@ -63,7 +63,8 @@ const DEFAULTS=[
 ["🐱 GATTI","🪣 Lettiera",0,""],
 ["🏠 CASA & PULIZIA","🏠 Casa",15,"Detersivo pavimenti · Carta igienica · Buste immondizia · detergenti"],
 ["🏠 CASA & PULIZIA","🍽️ Tavola",5,"Scottex · Piatti · Bicchieri · Detersivo piatti · Spugne"],
-["🏠 CASA & PULIZIA","👕 Lavatrice",0,"Detersivo lavatrice · Ammorbidente"]
+["🏠 CASA & PULIZIA","👕 Lavatrice",0,"Detersivo lavatrice · Ammorbidente"],
+["🧴 IGIENE PERSONALE","🧴 Igiene personale",0,"Deodorante · Stick ascelle · Cotton fioc · Shampoo · Bagnoschiuma · Sapone mani · Dentifricio · Spazzolino · Assorbenti · Detergenti personali"]
 ];
 
 const $=id=>document.getElementById(id);
@@ -78,6 +79,12 @@ function fresh(){
 function migrate(x){
  if(!x||!Array.isArray(x.cats))return fresh();
  x.budget=Number(x.budget??200);
+ // Aggiunge automaticamente le nuove categorie alle installazioni precedenti.
+ DEFAULTS.forEach(d=>{
+   if(!x.cats.some(c=>c.name===d[1])){
+     x.cats.push({section:d[0],name:d[1],budget:d[2],note:d[3],selected:d[2]>0,items:[]});
+   }
+ });
  x.history=Array.isArray(x.history)?x.history:[];
  x.receipts=Array.isArray(x.receipts)?x.receipts:[];
  x.currentReceiptId=x.currentReceiptId||null;
@@ -229,7 +236,10 @@ function finishShopping(){
 
 function newShopping(){
  const has=data.cats.some(c=>c.items.length);
- if(has && !confirm("La spesa corrente contiene prodotti. Vuoi iniziare una nuova spesa senza salvarla? I dati eliminati non potranno essere recuperati."))return;
+ if(has){
+   const ok=confirm("Hai una spesa corrente non ancora conclusa. Vuoi ELIMINARLA definitivamente e iniziare una nuova spesa?\n\nSe vuoi conservarla, premi Annulla e poi usa ✅ Fine spesa.");
+   if(!ok)return;
+ }
  data.cats.forEach(c=>c.items=[]); data.currentReceiptId=null; save(); render();
 }
 
@@ -280,11 +290,11 @@ function cats(){
 
 function backup(){
  open(`<h2>💾 Backup</h2><p class="muted">Salva budget, categorie, acquisti, lista, prodotti, offerte, supermercati, dispensa e storico.</p><button id="export" style="width:100%">⬇️ Esporta backup</button><button class="gray" id="imp" style="width:100%;margin-top:6px">⬆️ Importa backup</button><input id="file" type="file" accept=".json,application/json" hidden><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
- $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v6.3-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
+ $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v6.4-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V6.3</b><div class="muted">Dati salvati localmente sul dispositivo.</div></div><button id="reset" style="width:100%">↺ Ripristina categorie e budget V6.2</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V6.4</b><div class="muted">Dati salvati localmente sul dispositivo.</div></div><button id="reset" style="width:100%">↺ Ripristina categorie e budget predefiniti</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
  $("close").onclick=close;$("reset").onclick=()=>{if(confirm("Ripristinare i budget V6.2? Gli acquisti non vengono cancellati.")){DEFAULTS.forEach(d=>{const c=data.cats.find(x=>x.name===d[1]);if(c){c.budget=d[2];c.selected=d[2]>0;c.note=d[3]}});save();close();render()}};$("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
 }
 
