@@ -52,7 +52,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 </head>
 <body>
 <div class="app">
-<header><div class="headerline"><h1>🛒 SPESA — BUDGET V6</h1><button class="gray settingsBtn" id="settingsBtn" aria-label="Impostazioni">⚙️</button></div><p class="subtitle">Inserisci il prezzo e premi +. Lista e prodotti sono opzionali.</p></header>
+<header><div class="headerline"><h1>🛒 SPESA — BUDGET V6.1</h1><button class="gray settingsBtn" id="settingsBtn" aria-label="Impostazioni">⚙️</button></div><p class="subtitle">Inserisci il prezzo e premi +. Lista e prodotti sono opzionali.</p></header>
 
 <div class="card top">
 <label>💰 Budget</label><input id="budgetInput" type="number" inputmode="decimal" step="0.01">
@@ -137,20 +137,33 @@ const CATEGORY_NOTES = {
 const $=id=>document.getElementById(id);
 const euro=n=>new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(n);
 const money=v=>Math.round(v*100)/100;
-const KEY="spesaV6";
+// Archivio dati permanente: le versioni dell'app usano sempre questa stessa chiave.
+// Le vecchie chiavi restano leggibili per la migrazione e non vengono cancellate automaticamente.
+const KEY="spesaBudgetData";
+const LEGACY_KEYS=["spesaV6","spesaV5"];
+const AUTO_BACKUP_KEY="spesaBudgetData.autoBackup";
+const SCHEMA_VERSION=2;
 let data=load(); let pendingNames={};
 
 function fresh(){return {
+  schemaVersion:SCHEMA_VERSION,
   budget:200,
   cats:DEFAULTS.map(x=>({section:x[0],name:x[1],budget:x[2],items:[]})),
   history:[],shoppingList:[],products:[],sessions:[],
   supermarkets:[],pantry:[],settings:{currency:"EUR"}
 }}
 function load(){
- try{
-  const raw=localStorage.getItem("spesaV6") || localStorage.getItem("spesaV5");
-  const x=JSON.parse(raw);
-  if(x&&Array.isArray(x.cats)){
+ const candidates=[KEY,...LEGACY_KEYS];
+ for(const sourceKey of candidates){
+  try{
+   const raw=localStorage.getItem(sourceKey);
+   if(!raw)continue;
+   const x=JSON.parse(raw);
+   if(x&&Array.isArray(x.cats)){
+      // Prima di una migrazione strutturale conserviamo una copia locale di sicurezza.
+      if(sourceKey!==KEY || Number(x.schemaVersion||1)!==SCHEMA_VERSION){
+        try{localStorage.setItem(AUTO_BACKUP_KEY,JSON.stringify({savedAt:new Date().toISOString(),sourceKey,schemaVersion:Number(x.schemaVersion||1),data:x}))}catch(e){}
+      }
       x.cats.forEach(c=>{
         c.items=(c.items||[]).map(v=>typeof v==="number"?{price:v,qty:1,name:""}:Object.assign({name:""},v));
         if(!c.section)c.section="🛒 SPESA ALIMENTARE";
@@ -205,12 +218,21 @@ function load(){
       x.supermarkets=Array.isArray(x.supermarkets)?x.supermarkets:[];
       x.pantry=Array.isArray(x.pantry)?x.pantry:[];
       x.settings=x.settings||{currency:"EUR"};
+      x.schemaVersion=SCHEMA_VERSION;
+      // La prima lettura da una vecchia versione viene subito promossa all'archivio permanente.
+      try{localStorage.setItem(KEY,JSON.stringify(x))}catch(e){}
       return x;
     }
- }catch(e){}
- return fresh();
+  }catch(e){}
+ }
+ const initial=fresh();
+ try{localStorage.setItem(KEY,JSON.stringify(initial))}catch(e){}
+ return initial;
 }
-function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function save(){
+ data.schemaVersion=SCHEMA_VERSION;
+ try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){alert("Impossibile salvare i dati sul dispositivo.")}
+}
 function catSum(c){return c.items.reduce((a,v)=>a+Number(v.price||0)*Number(v.qty||1),0)}
 function totalSpent(){return data.cats.reduce((a,c)=>a+catSum(c),0)}
 function readPrice(i){const el=$("price-"+i);if(!el)return NaN;return parseFloat(String(el.value).trim().replace(",","."));}
@@ -336,7 +358,8 @@ function deleteAllData(){
  const second=confirm("Confermi definitivamente l'eliminazione di tutti i dati? Questa operazione non può essere annullata.");
  if(!second)return;
  localStorage.removeItem(KEY);
- localStorage.removeItem("spesaV5");
+ localStorage.removeItem(AUTO_BACKUP_KEY);
+ LEGACY_KEYS.forEach(k=>localStorage.removeItem(k));
  data=fresh();
  pendingNames={};
  closeModal();
@@ -347,13 +370,24 @@ function openSettings(){
  '<p class="muted">Gestisci i dati e le impostazioni dell’app.</p>'+
  '<div class="statbox"><b>💶 Valuta</b><div style="margin-top:5px">Euro (€)</div></div>'+
  '<button id="settingsBackup" style="width:100%;margin-top:7px">💾 Gestisci backup</button>'+
+ '<button class="gray" id="settingsRestoreAuto" style="width:100%;margin-top:7px">↩️ Ripristina ultimo backup automatico</button>'+
  '<button class="gray" id="settingsResetBudget" style="width:100%;margin-top:7px">↩️ Ripristina solo i budget iniziali</button>'+
  '<div class="alertbox dangerbox" style="margin-top:14px"><b>Zona pericolosa</b><div style="margin-top:4px">Elimina definitivamente tutti i dati salvati nell’app.</div></div>'+
  '<button class="gray" id="deleteAllDataBtn" style="width:100%;margin-top:7px">🗑️ Elimina tutti i dati</button>'+
- '<p class="muted" style="margin-top:12px">Spesa — Budget V6</p>'+
+ '<p class="muted" style="margin-top:12px">Spesa — Budget V6.1 · dati conservati durante gli aggiornamenti</p>'+
  '<button class="gray" id="closeModalBtn" style="width:100%;margin-top:7px">Chiudi</button>';
  $("modal").classList.add("open");
  $("settingsBackup").onclick=()=>openV6Backup();
+ $("settingsRestoreAuto").onclick=()=>{
+   try{
+     const raw=localStorage.getItem(AUTO_BACKUP_KEY);
+     if(!raw){alert("Non c'è un backup automatico disponibile.");return}
+     const pack=JSON.parse(raw),x=pack&&pack.data;
+     if(!x||!Array.isArray(x.cats))throw 0;
+     if(!confirm("Ripristinare l'ultimo backup automatico?\n\nI dati attuali verranno sostituiti."))return;
+     localStorage.setItem(KEY,JSON.stringify(x));data=load();closeModal();render();alert("Backup automatico ripristinato.");
+   }catch(e){alert("Backup automatico non valido.")}
+ };
  $("settingsResetBudget").onclick=()=>{closeModal();resetAll()};
  $("deleteAllDataBtn").onclick=deleteAllData;
  $("closeModalBtn").onclick=closeModal;
@@ -459,7 +493,10 @@ function openV6Backup(){
  $("importBtn").onclick=()=>$("fileImport").click();
  $("fileImport").onchange=e=>{
    const f=e.target.files[0];if(!f)return;
-   const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x||!Array.isArray(x.cats))throw 0;localStorage.setItem(KEY,JSON.stringify(x));data=load();alert("Backup importato.");closeModal();render()}catch(err){alert("Backup non valido.")}};r.readAsText(f);
+   const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x||!Array.isArray(x.cats))throw 0;
+     // Conserva il dataset attuale prima di sostituirlo con il backup importato.
+     try{localStorage.setItem(AUTO_BACKUP_KEY,JSON.stringify({savedAt:new Date().toISOString(),sourceKey:KEY,schemaVersion:Number(data.schemaVersion||1),data}))}catch(e){}
+     x.schemaVersion=SCHEMA_VERSION;localStorage.setItem(KEY,JSON.stringify(x));data=load();alert("Backup importato.");closeModal();render()}catch(err){alert("Backup non valido.")}};r.readAsText(f);
  };
 }
 

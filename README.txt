@@ -1,16 +1,12 @@
-SPESA — BUDGET V6 FIX + CATEGORIE
+SPESA — BUDGET V6.1 STABILE
 
-Questa versione mantiene il flusso rapido della V5 (quantità, prezzo, +) e aggiunge la struttura in tre sezioni:
-- SPESA ALIMENTARE
-- GATTI
-- CASA & PULIZIA
+Questa versione introduce un archivio dati permanente.
 
-Il budget iniziale è 200 € e i budget delle categorie predefinite sommano a 200 €.
-
-La V6 FIX include inoltre i fix già applicati a:
-- navigazione V6
-- chiave localStorage spesaV6 e migrazione da V5
-- backup/import
-- nuova spesa senza movimento fittizio
-- statistiche senza movimenti a zero
-- gestione sicura dei pulsanti V6
+- Chiave dati principale: spesaBudgetData
+- Migra automaticamente spesaV6 e spesaV5
+- Non cancella le vecchie chiavi durante la migrazione
+- Salva sempre le modifiche nel nuovo archivio permanente
+- Conserva un backup automatico prima della migrazione/importazione
+- Permette di ripristinare l'ultimo backup automatico dalle Impostazioni
+- "Azzera" ripristina solo i budget iniziali e non cancella spese/dati
+- "Elimina tutti i dati" è l'unica azione che cancella realmente l'archivio
