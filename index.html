@@ -48,7 +48,7 @@ button{border:0;background:#111;color:#fff;border-radius:9px;height:34px;padding
 .dangerbox{background:#f8d7da}.successbox{background:#d1e7dd}
 .searchbox{width:100%;box-sizing:border-box;margin:7px 0}
 
-</style>
+.ok{color:#2e8b57}.warn{color:#b06a00}.over{color:#c62828}</style>
 </head>
 <body>
 <div class="app">
@@ -322,6 +322,8 @@ function add(i){
       x.done=true; x.purchased=true; x.purchasedAt=new Date().toLocaleString("it-IT"); x.purchasedPrice=value;
     }
   });
+  const pantryItem=(data.pantry||[]).find(x=>String(x.name||"").trim().toLowerCase()===normalized);
+  if(pantryItem){ pantryItem.qty=Math.max(0,Number(pantryItem.qty||0)-q); }
 }
  save();render();const next=$("price-"+i);if(next){next.focus();next.select()}return true;
 }
@@ -467,21 +469,41 @@ function openV6Stats(){
  $("sheetContent").innerHTML='<h2>📊 Statistiche</h2><div class="statbox"><div>Spesa totale</div><b style="font-size:20px">'+euro(total)+'</b></div><div class="statbox"><div>Movimenti</div><b>'+count+'</b></div><div class="statbox"><div>Media per movimento</div><b>'+euro(avg)+'</b></div><h3 style="font-size:14px">Categorie</h3>'+catRows+'<h3 style="font-size:14px;margin-top:14px">Supermercati</h3>'+marketRows+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
  $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
 }
+function pantryStatus(x){
+ const q=Number(x.qty||0), m=Math.max(0,Number(x.min||0));
+ if(q<=0)return {label:'Finito',cls:'over'};
+ if(m>0 && q<=m)return {label:'Quasi finito',cls:'warn'};
+ return {label:'Disponibile',cls:'ok'};
+}
 function openV6Pantry(){
  const p=data.pantry||[];
- const rows=p.length?p.map((x,i)=>'<div class="manage-row"><div class="grow"><b>'+escapeHtml(x.name)+'</b><div class="muted">Quantità: '+x.qty+' · soglia: '+x.min+'</div></div><button class="smallbtn" data-pantrybuy="'+i+'">Lista</button><button class="gray smallbtn" data-pantrydel="'+i+'">×</button></div>').join(""):"<p>Dispensa vuota.</p>";
- $("sheetContent").innerHTML='<h2>📦 Dispensa</h2><p class="muted">Tieni sotto controllo ciò che hai già in casa.</p><button id="addPantry" style="width:100%">＋ Aggiungi prodotto</button>'+rows+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
+ const rows=p.length?p.map((x,i)=>{
+   const st=pantryStatus(x);
+   return '<div class="manage-row"><div class="grow"><b>'+escapeHtml(x.name)+'</b><div class="muted">Quantità: '+Number(x.qty||0)+' · soglia: '+Number(x.min||0)+' · <span class="'+st.cls+'">'+st.label+'</span></div></div><button class="smallbtn" data-pantryedit="'+i+'">✏️</button><button class="smallbtn" data-pantrybuy="'+i+'">Lista</button><button class="gray smallbtn" data-pantrydel="'+i+'">×</button></div>';
+ }).join(""):"<p>Dispensa vuota.</p>";
+ const low=p.filter(x=>pantryStatus(x).label!=='Disponibile').length;
+ $("sheetContent").innerHTML='<h2>📦 Dispensa</h2><p class="muted">Tieni sotto controllo ciò che hai già in casa. Gli acquisti con lo stesso nome aggiornano automaticamente la quantità.</p>'+(low?'<div class="alert">⚠️ '+low+' prodotto/i da reintegrare</div>':'')+'<button id="addPantry" style="width:100%">＋ Aggiungi prodotto</button>'+rows+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
  $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
  $("addPantry").onclick=()=>{
    const n=prompt("Prodotto");if(!n||!n.trim())return;
-   const q=Math.max(0,parseFloat(prompt("Quantità","1")||"1"));const m=Math.max(0,parseFloat(prompt("Soglia minima","1")||"1"));
-   data.pantry.push({name:n.trim(),qty:q,min:m});save();openV6Pantry();
+   const name=n.trim(), existing=data.pantry.find(x=>x.name.trim().toLowerCase()===name.toLowerCase());
+   const q=Math.max(0,parseFloat(String(prompt("Quantità disponibile","1")||"1").replace(",",".")));
+   const m=Math.max(0,parseFloat(String(prompt("Soglia minima","1")||"1").replace(",",".")));
+   if(existing){existing.qty=q;existing.min=m}else data.pantry.push({name,qty:q,min:m});
+   save();openV6Pantry();
  };
+ $("sheetContent").querySelectorAll("[data-pantryedit]").forEach(el=>el.onclick=()=>{
+   const i=Number(el.dataset.pantryedit),x=data.pantry[i];if(!x)return;
+   const q=Math.max(0,parseFloat(String(prompt("Quantità disponibile",String(x.qty)).replace(",","."))));
+   const m=Math.max(0,parseFloat(String(prompt("Soglia minima",String(x.min)).replace(",","."))));
+   x.qty=q;x.min=m;save();openV6Pantry();
+ });
  $("sheetContent").querySelectorAll("[data-pantrydel]").forEach(el=>el.onclick=()=>{data.pantry.splice(Number(el.dataset.pantrydel),1);save();openV6Pantry()});
- $("sheetContent").querySelectorAll("[data-pantrbuy]").forEach(el=>el.onclick=()=>{});
  $("sheetContent").querySelectorAll("[data-pantrybuy]").forEach(el=>el.onclick=()=>{
-   const x=data.pantry[Number(el.dataset.pantrybuy)]; if(!x)return;
-   data.shoppingList.push({name:x.name,price:0,done:false});save();openV6Pantry();
+   const x=data.pantry[Number(el.dataset.pantrybuy)];if(!x)return;
+   const exists=(data.shoppingList||[]).some(y=>String(y.name||"").trim().toLowerCase()===x.name.trim().toLowerCase()&&!y.done);
+   if(!exists)data.shoppingList.push({name:x.name,price:0,done:false,fromPantry:true});
+   save();openV6Pantry();
  });
 }
 function openV6Markets(){
