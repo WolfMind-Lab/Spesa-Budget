@@ -323,7 +323,7 @@ function add(i){
     }
   });
   const pantryItem=(data.pantry||[]).find(x=>String(x.name||"").trim().toLowerCase()===normalized);
-  if(pantryItem){ pantryItem.qty=Math.max(0,Number(pantryItem.qty||0)-q); }
+  if(pantryItem){ pantryItem.qty=Math.max(0,Number(pantryItem.qty||0)+q); }
 }
  save();render();const next=$("price-"+i);if(next){next.focus();next.select()}return true;
 }
@@ -455,6 +455,8 @@ function openProducts(){
       const value=money(v);data.cats[ci].items.push({price:value,qty:1,name:p.name});data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[ci].name,price:value,qty:1,total:value,product:p.name,market});
       p.price=value;p.category=data.cats[ci].name;p.lastMarket=market||p.lastMarket||"";p.priceHistory=Array.isArray(p.priceHistory)?p.priceHistory:[];p.priceHistory.push({date:new Date().toLocaleString("it-IT"),price:value,market,category:data.cats[ci].name});
       (data.shoppingList||[]).forEach(x=>{if(String(x.name||"").trim().toLowerCase()===p.name.trim().toLowerCase()){x.done=true;x.purchased=true;x.purchasedAt=new Date().toLocaleString("it-IT");x.purchasedPrice=value;}});
+      const pantryItem=(data.pantry||[]).find(x=>String(x.name||"").trim().toLowerCase()===p.name.trim().toLowerCase());
+      if(pantryItem){ pantryItem.qty=Math.max(0,Number(pantryItem.qty||0)+1); }
       save();closeModal();render();
    });
  });
@@ -479,10 +481,10 @@ function openV6Pantry(){
  const p=data.pantry||[];
  const rows=p.length?p.map((x,i)=>{
    const st=pantryStatus(x);
-   return '<div class="manage-row"><div class="grow"><b>'+escapeHtml(x.name)+'</b><div class="muted">Quantità: '+Number(x.qty||0)+' · soglia: '+Number(x.min||0)+' · <span class="'+st.cls+'">'+st.label+'</span></div></div><button class="smallbtn" data-pantryedit="'+i+'">✏️</button><button class="smallbtn" data-pantrybuy="'+i+'">Lista</button><button class="gray smallbtn" data-pantrydel="'+i+'">×</button></div>';
+   return '<div class="manage-row"><div class="grow"><b>'+escapeHtml(x.name)+'</b><div class="muted">Quantità: <strong>'+Number(x.qty||0)+'</strong> · soglia: '+Number(x.min||0)+' · <span class="'+st.cls+'">'+st.label+'</span></div></div><button class="smallbtn" data-pantrydec="'+i+'" aria-label="Consuma 1">−</button><button class="smallbtn" data-pantryinc="'+i+'" aria-label="Aggiungi 1">+</button><button class="smallbtn" data-pantryedit="'+i+'">✏️</button><button class="smallbtn" data-pantrybuy="'+i+'">Lista</button><button class="gray smallbtn" data-pantrydel="'+i+'">×</button></div>';
  }).join(""):"<p>Dispensa vuota.</p>";
  const low=p.filter(x=>pantryStatus(x).label!=='Disponibile').length;
- $("sheetContent").innerHTML='<h2>📦 Dispensa</h2><p class="muted">Tieni sotto controllo ciò che hai già in casa. Gli acquisti con lo stesso nome aggiornano automaticamente la quantità.</p>'+(low?'<div class="alert">⚠️ '+low+' prodotto/i da reintegrare</div>':'')+'<button id="addPantry" style="width:100%">＋ Aggiungi prodotto</button>'+rows+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
+ $("sheetContent").innerHTML='<h2>📦 Dispensa</h2><p class="muted">Tieni sotto controllo ciò che hai già in casa. Gli acquisti con lo stesso nome aumentano automaticamente la quantità.</p>'+(low?'<div class="alert">⚠️ '+low+' prodotto/i da reintegrare</div>':'')+'<button id="addPantry" style="width:100%">＋ Aggiungi prodotto</button>'+rows+'<button class="gray" id="closeModalBtn" style="width:100%;margin-top:12px">Chiudi</button>';
  $("modal").classList.add("open");$("closeModalBtn").onclick=closeModal;
  $("addPantry").onclick=()=>{
    const n=prompt("Prodotto");if(!n||!n.trim())return;
@@ -492,6 +494,14 @@ function openV6Pantry(){
    if(existing){existing.qty=q;existing.min=m}else data.pantry.push({name,qty:q,min:m});
    save();openV6Pantry();
  };
+ $("sheetContent").querySelectorAll("[data-pantrydec]").forEach(el=>el.onclick=()=>{
+   const i=Number(el.dataset.pantrydec),x=data.pantry[i];if(!x)return;
+   x.qty=Math.max(0,Number(x.qty||0)-1);save();openV6Pantry();
+ });
+ $("sheetContent").querySelectorAll("[data-pantryinc]").forEach(el=>el.onclick=()=>{
+   const i=Number(el.dataset.pantryinc),x=data.pantry[i];if(!x)return;
+   x.qty=Number(x.qty||0)+1;save();openV6Pantry();
+ });
  $("sheetContent").querySelectorAll("[data-pantryedit]").forEach(el=>el.onclick=()=>{
    const i=Number(el.dataset.pantryedit),x=data.pantry[i];if(!x)return;
    const q=Math.max(0,parseFloat(String(prompt("Quantità disponibile",String(x.qty)).replace(",","."))));
