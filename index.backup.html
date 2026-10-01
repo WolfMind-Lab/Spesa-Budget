@@ -142,7 +142,7 @@ const money=v=>Math.round(v*100)/100;
 const KEY="spesaBudgetData";
 const LEGACY_KEYS=["spesaV6","spesaV5"];
 const AUTO_BACKUP_KEY="spesaBudgetData.autoBackup";
-const SCHEMA_VERSION=2;
+const SCHEMA_VERSION=3;
 let data=load(); let pendingNames={};
 
 function fresh(){return {
@@ -218,6 +218,18 @@ function load(){
       x.supermarkets=Array.isArray(x.supermarkets)?x.supermarkets:[];
       x.pantry=Array.isArray(x.pantry)?x.pantry:[];
       x.settings=x.settings||{currency:"EUR"};
+      // Collega ogni acquisto corrente al suo movimento storico con un ID stabile.
+      x.cats.forEach(c=>{
+       (c.items||[]).forEach(item=>{
+        if(!item.id)item.id=purchaseId();
+        const match=(x.history||[]).find(h=>!h.id &&
+         String(h.cat||"")===String(c.name||"") &&
+         String(h.product||"")===String(item.name||"") &&
+         Number(h.price||0)===Number(item.price||0) &&
+         Number(h.qty||1)===Number(item.qty||1));
+        if(match)match.id=item.id;
+       });
+      });
       x.schemaVersion=SCHEMA_VERSION;
       // La prima lettura da una vecchia versione viene subito promossa all'archivio permanente.
       try{localStorage.setItem(KEY,JSON.stringify(x))}catch(e){}
@@ -303,10 +315,10 @@ function preview(i){
 function add(i){
  const el=$("price-"+i),v=readPrice(i),q=readQty(i);
  if(!el||!Number.isFinite(v)||v<=0){el&&el.focus();return false}
- const value=money(v),item={price:value,qty:q,name:pendingNames[i]||""}; delete pendingNames[i];
+ const value=money(v),item={id:purchaseId(),price:value,qty:q,name:pendingNames[i]||""}; delete pendingNames[i];
  data.cats[i].items.push(item);
  const market=(item.name&&data.supermarkets.length)?(prompt("Supermercato (facoltativo)",data.supermarkets[0]||"")||""):"";
- data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:value,qty:q,total:money(value*q),product:item.name||"",market});
+ data.history.push({id:item.id,date:new Date().toLocaleString("it-IT"),cat:data.cats[i].name,price:value,qty:q,total:money(value*q),product:item.name||"",market});
  if(item.name){
   const normalized=item.name.trim().toLowerCase();
   const ex=(data.products||[]).find(p=>p.name.trim().toLowerCase()===normalized);
@@ -343,10 +355,26 @@ function listPurchaseState(name,done){
    }
  });
 }
+function purchaseId(){
+ return "p-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,9);
+}
+function findHistoryForItem(item,catName){
+ if(!item)return -1;
+ if(item.id){
+  const byId=data.history.findIndex(h=>h&&h.id===item.id);
+  if(byId>=0)return byId;
+ }
+ return data.history.findIndex(h=>
+  String(h.cat||"")===String(catName||"") &&
+  String(h.product||"")===String(item.name||"") &&
+  Number(h.price||0)===Number(item.price||0) &&
+  Number(h.qty||1)===Number(item.qty||1)
+ );
+}
 function del(i,j){
  const c=data.cats[i];if(!c||j<0||j>=c.items.length)return;
- const item=c.items[j];c.items.splice(j,1);
- const k=data.history.findIndex(x=>x.cat===c.name&&Number(x.price)===Number(item.price)&&Number(x.qty||1)===Number(item.qty||1)&&String(x.product||"")===String(item.name||""));
+ const item=c.items[j],k=findHistoryForItem(item,c.name);
+ c.items.splice(j,1);
  if(k>=0)data.history.splice(k,1);
  if(item.name){pantryAdjustForPurchase(item.name,-Number(item.qty||1));listPurchaseState(item.name,false);}
  save();render();
@@ -356,11 +384,16 @@ function editItem(i,j){
  $("sheetContent").innerHTML='<h2>✏️ Modifica spesa</h2><div class="line"><input id="editQty" type="number" min="1" step="1" value="'+(item.qty||1)+'" placeholder="Quantità"><input id="editPrice" type="number" min="0" step="0.01" value="'+item.price+'" placeholder="Prezzo unitario €"></div><button id="saveItem" style="width:100%">Salva modifica</button><button class="gray" id="deleteItem" style="width:100%;margin-top:7px">🗑️ Elimina</button><button class="gray" id="cancelItem" style="width:100%;margin-top:7px">Annulla</button>';
  $("modal").classList.add("open");$("cancelItem").onclick=closeModal;
  $("deleteItem").onclick=()=>{closeModal();del(i,j)};
- $("saveItem").onclick=()=>{const p=parseFloat(String($("editPrice").value).replace(",",".")),q=parseInt($("editQty").value,10);if(!Number.isFinite(p)||p<=0||!Number.isFinite(q)||q<1)return;const oldQty=Number(item.qty||1),delta=q-oldQty;item.price=money(p);item.qty=q;if(item.name&&delta)pantryAdjustForPurchase(item.name,delta);save();closeModal();render()};
+ $("saveItem").onclick=()=>{const p=parseFloat(String($("editPrice").value).replace(",",".")),q=parseInt($("editQty").value,10);if(!Number.isFinite(p)||p<=0||!Number.isFinite(q)||q<1)return;const oldQty=Number(item.qty||1),delta=q-oldQty;item.price=money(p);item.qty=q;const hk=findHistoryForItem(item,data.cats[i].name);if(hk>=0){data.history[hk].id=item.id;data.history[hk].price=item.price;data.history[hk].qty=q;data.history[hk].total=money(item.price*q);data.history[hk].cat=data.cats[i].name;data.history[hk].product=item.name||"";}if(item.name&&delta)pantryAdjustForPurchase(item.name,delta);save();closeModal();render()};
 }
 function undo(){
  for(let i=data.cats.length-1;i>=0;i--){
-  if(data.cats[i].items.length){const item=data.cats[i].items.pop();data.history.pop();if(item&&item.name){pantryAdjustForPurchase(item.name,-Number(item.qty||1));listPurchaseState(item.name,false);}save();render();return}
+  if(data.cats[i].items.length){
+   const item=data.cats[i].items.pop(),hk=findHistoryForItem(item,data.cats[i].name);
+   if(hk>=0)data.history.splice(hk,1);
+   if(item&&item.name){pantryAdjustForPurchase(item.name,-Number(item.qty||1));listPurchaseState(item.name,false);}
+   save();render();return;
+  }
  }
 }
 function setBudget(){
@@ -470,7 +503,7 @@ function openProducts(){
    $("useCats").querySelectorAll("[data-catuse]").forEach(b=>b.onclick=()=>{
       const ci=Number(b.dataset.catuse),v=parseFloat(String($("usePrice").value||"").replace(",","."));if(!Number.isFinite(v)||v<=0){$("usePrice").focus();return;}
       const market=data.supermarkets.length?(prompt("Supermercato (facoltativo)",p.lastMarket||data.supermarkets[0]||"")||""):"";
-      const value=money(v);data.cats[ci].items.push({price:value,qty:1,name:p.name});data.history.push({date:new Date().toLocaleString("it-IT"),cat:data.cats[ci].name,price:value,qty:1,total:value,product:p.name,market});
+      const value=money(v);const item={id:purchaseId(),price:value,qty:1,name:p.name};data.cats[ci].items.push(item);data.history.push({id:item.id,date:new Date().toLocaleString("it-IT"),cat:data.cats[ci].name,price:value,qty:1,total:value,product:p.name,market});
       p.price=value;p.category=data.cats[ci].name;p.lastMarket=market||p.lastMarket||"";p.priceHistory=Array.isArray(p.priceHistory)?p.priceHistory:[];p.priceHistory.push({date:new Date().toLocaleString("it-IT"),price:value,market,category:data.cats[ci].name});
       (data.shoppingList||[]).forEach(x=>{if(String(x.name||"").trim().toLowerCase()===p.name.trim().toLowerCase()){x.done=true;x.purchased=true;x.purchasedAt=new Date().toLocaleString("it-IT");x.purchasedPrice=value;}});
       const pantryItem=(data.pantry||[]).find(x=>String(x.name||"").trim().toLowerCase()===p.name.trim().toLowerCase());
