@@ -271,8 +271,13 @@ function render(){
    renderHistory(c,i);
   list.appendChild(row);
   const input=$("price-"+i);
-  input.addEventListener("input",()=>preview(i));
-  $("qty-"+i).addEventListener("input",()=>preview(i));
+  const refreshPending=()=>preview(i);
+  input.addEventListener("input",refreshPending);
+  input.addEventListener("change",refreshPending);
+  input.addEventListener("keyup",refreshPending);
+  $("qty-"+i).addEventListener("input",refreshPending);
+  $("qty-"+i).addEventListener("change",refreshPending);
+  $("qty-"+i).addEventListener("keyup",refreshPending);
   input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();add(i)}});
   });
  });
@@ -283,19 +288,17 @@ function renderHistory(c,i){
  return '<div class="hist">'+c.items.map((v,j)=>{const q=Number(v.qty||1),t=money(Number(v.price||0)*q);return (v.name?escapeHtml(v.name)+' · ':'')+euro(t)+(q>1?' ('+q+'× '+euro(v.price)+')':'')+' <button type="button" data-edit="'+i+','+j+'">✏️</button><button type="button" data-del="'+i+','+j+'">×</button>';}).join(" · ")+'</div>';
 }
 function preview(i){
- const v=readPrice(i);
  const c=data.cats[i];
  const row=$("price-"+i)?.closest(".row");
  if(!c||!row)return;
- if(!Number.isFinite(v)||v<=0){
-   const actual=catSum(c),rm=money(c.budget-actual);
-   row.querySelector(".numbers").innerHTML='B. '+euro(c.budget)+' · <strong>S. '+euro(actual)+'</strong> · <span class="'+(rm<0?'over':'')+'">R. '+euro(rm)+'</span>';
-   updateSummary();
-   return;
- }
- const q=readQty(i),shown=money(catSum(c)+v*q),rm=money(c.budget-shown);
+ const v=readPrice(i);
+ const q=readQty(i);
+ const pending=Number.isFinite(v)&&v>0?money(v*q):0;
+ const actual=catSum(c);
+ const shown=money(actual+pending);
+ const rm=money(c.budget-shown);
  row.querySelector(".numbers").innerHTML='B. '+euro(c.budget)+' · <strong>S. '+euro(shown)+'</strong> · <span class="'+(rm<0?'over':'')+'">R. '+euro(rm)+'</span>';
- updateSummary(i,v*q);
+ updateSummary(i,pending);
 }
 function add(i){
  const el=$("price-"+i),v=readPrice(i),q=readQty(i);
