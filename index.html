@@ -43,30 +43,30 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=6.8;
+const KEY="spesaBudgetData",VERSION=7.0;
 const DEFAULTS=[
-["🛒 SPESA ALIMENTARE","🍝 Pasta, riso, cereali e farine",20,"Penne · Rigatoni · Tubettini · Pasta mista · Riso · Farina · Semola · Zucchero · Pangrattato"],
-["🛒 SPESA ALIMENTARE","🥫 Conserve e legumi",15,"Passata · Pelati · Concentrato · Salsa · Tonno · Sgombro · Simmenthal · Ceci · Fagioli · Lenticchie · Olive · Mais · Acciughe · Capperi"],
-["🛒 SPESA ALIMENTARE","🥩 Carne",45,"Salsiccia · Fettine · Macinato · Pollo · Alette · Cosciotti · Petto · Carne a pezzi"],
-["🛒 SPESA ALIMENTARE","🐟 Pesce",5,"Pesce fresco · Salmone · Merluzzo · Frutti di mare · Misto mare"],
+["🛒 SPESA ALIMENTARE","❄️ Frigorifero",17.5,"Pasta fresca · Pasta sfoglia · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
 ["🛒 SPESA ALIMENTARE","🥛 Latte, yogurt e formaggi",15,"Latte · Yogurt · Mozzarella · Formaggio · Provola · Burro"],
 ["🛒 SPESA ALIMENTARE","🥦 Verdura",15,"Rucola · Insalata · Pomodori · Zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
 ["🛒 SPESA ALIMENTARE","🍎 Frutta",0,"Mele · Banane · Arance · Pere · Uva"],
 ["🛒 SPESA ALIMENTARE","🍞 Pane e prodotti da forno",8,"Pane · Pan bauletto · Piadine · Focaccia · Panini · Crackers · Pangrattato"],
-["🛒 SPESA ALIMENTARE","☕ Colazione",5,"Biscotti · Cereali · Marmellata · Cacao · Miele"],
-["🛒 SPESA ALIMENTARE","🍪 Snack e dolci",7,"Patatine · Crackers · Cioccolato · Merendine · Dolci"],
-["🛒 SPESA ALIMENTARE","🥤 Bevande",5,"Acqua · Succhi · Bibite · Tè freddo"],
 ["🛒 SPESA ALIMENTARE","☕ Caffè e tè",4,"Caffè · Tè · Camomilla · Tisane"],
+["🛒 SPESA ALIMENTARE","☕ Colazione",5,"Biscotti · Cereali · Marmellata · Cacao · Miele"],
+["🛒 SPESA ALIMENTARE","🥤 Bevande",5,"Acqua · Succhi · Bibite · Tè freddo"],
+["🛒 SPESA ALIMENTARE","🍪 Snack e dolci",7,"Patatine · Crackers · Cioccolato · Merendine · Dolci"],
+["🛒 SPESA ALIMENTARE","🍝 Pasta, riso, cereali e farine",20,"Penne · Rigatoni · Tubettini · Pasta mista · Riso · Farina · Semola · Zucchero · Pangrattato"],
+["🛒 SPESA ALIMENTARE","🥫 Conserve e legumi",15,"Passata · Pelati · Concentrato · Salsa · Tonno · Sgombro · Simmenthal · Ceci · Fagioli · Lenticchie · Olive · Mais · Acciughe · Capperi"],
+["🛒 SPESA ALIMENTARE","🥩 Carne",45,"Salsiccia · Fettine · Macinato · Pollo · Alette · Cosciotti · Petto · Carne a pezzi"],
+["🛒 SPESA ALIMENTARE","🐟 Pesce",5,"Pesce fresco · Salmone · Merluzzo · Frutti di mare · Misto mare"],
 ["🛒 SPESA ALIMENTARE","🫒 Olio, condimenti e spezie",6,"Olio · Olio di semi · Aceto · Glassa balsamica · Pepe · Spezie · Dadi · Salse"],
+["🏠 CASA & PULIZIA","🍽️ Tavola",5,"Scottex · Piatti · Bicchieri · Stuzzicadenti · Detersivo piatti · Spugne"],
+["🏠 CASA & PULIZIA","🏠 Casa",15,"Detersivo pavimenti · Detersivo bagno · Pezze per lavare a terra · Carta igienica · Buste immondizia · Rullino pelucchi"],
+["🧴 IGIENE PERSONALE","🧴 Igiene personale",0,"Deodorante · Stick ascelle · Cotton fioc · Shampoo · Bagnoschiuma · Sapone mani · Dentifricio · Spazzolino · Assorbenti · Detergenti personali"],
 ["🛒 SPESA ALIMENTARE","🧊 Surgelati",17.5,"Funghi champignon · Misto mare · Contorno verdure · Minestrone · Piselli · Spinaci · Patatine · Pesce · Pizza"],
-["🛒 SPESA ALIMENTARE","❄️ Frigorifero",17.5,"Pasta fresca · Pasta sfoglia · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
 ["🐱 GATTI","🥣 Croccantini",0,"Croccantini · Croccantini sterilizzati · Croccantini specifici"],
 ["🐱 GATTI","🥫 Umido",0,"Bustine · Lattine · Vaschette · Multipack · Paté · Bocconcini · Gelatina"],
 ["🐱 GATTI","🪣 Lettiera",0,"Lettiera agglomerante · Silicio · Vegetale · Non agglomerante"],
-["🏠 CASA & PULIZIA","🏠 Casa",15,"Detersivo pavimenti · Detersivo bagno · Pezze per lavare a terra · Carta igienica · Buste immondizia · Rullino pelucchi"],
-["🏠 CASA & PULIZIA","🍽️ Tavola",5,"Scottex · Piatti · Bicchieri · Stuzzicadenti · Detersivo piatti · Spugne"],
-["🏠 CASA & PULIZIA","👕 Lavatrice",0,"Detersivo lavatrice · Ammorbidente"],
-["🧴 IGIENE PERSONALE","🧴 Igiene personale",0,"Deodorante · Stick ascelle · Cotton fioc · Shampoo · Bagnoschiuma · Sapone mani · Dentifricio · Spazzolino · Assorbenti · Detergenti personali"]
+["🏠 CASA & PULIZIA","👕 Lavatrice",0,"Detersivo lavatrice · Ammorbidente"]
 ];
 
 const PRODUCT_CATALOG={
@@ -508,6 +508,14 @@ function migrate(x){
    if(!x.cats.some(c=>c.name===d[1])){
      x.cats.push({section:d[0],name:d[1],budget:0,note:d[3],selected:false,items:[]});
    }
+ });
+ // Ordine ufficiale delle sezioni: segue il percorso abituale nel supermercato, senza mostrare etichette di corridoio.
+ const order=DEFAULTS.map(d=>d[1]);
+ const pos=new Map(order.map((name,i)=>[name,i]));
+ x.cats.sort((a,b)=>{
+   const pa=pos.has(a.name)?pos.get(a.name):order.length;
+   const pb=pos.has(b.name)?pos.get(b.name):order.length;
+   return pa-pb;
  });
  x.history=Array.isArray(x.history)?x.history:[];
  x.receipts=Array.isArray(x.receipts)?x.receipts:[];
