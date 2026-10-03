@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V7.1</title>
+<title>Spesa — Budget V7.2</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -24,7 +24,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V7.1</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V7.2</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -43,7 +43,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=7.1;
+const KEY="spesaBudgetData",VERSION=7.2;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","❄️ Frigorifero",17.5,"Pasta fresca · Pasta sfoglia · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
 ["🛒 SPESA ALIMENTARE","🥛 Latte, yogurt e formaggi",15,"Latte · Yogurt · Mozzarella · Formaggio · Provola · Burro"],
@@ -545,8 +545,8 @@ function migrate(x){
 let data;
 try{data=migrate(JSON.parse(localStorage.getItem(KEY)||"null")||fresh())}catch(e){data=fresh()}
 function save(){data.schemaVersion=VERSION;localStorage.setItem(KEY,JSON.stringify(data))}
-function catSum(c){return c.items.reduce((a,x)=>a+money(x.price)*Number(x.qty||1),0)}
-function spent(){return data.cats.reduce((a,c)=>a+catSum(c),0)}
+function catSum(c){return (Array.isArray(c.items)?c.items:[]).reduce((a,x)=>a+money(x.price)*Math.max(1,Number(x.qty)||1),0)}
+function spent(){return money(data.cats.reduce((a,c)=>a+catSum(c),0))}
 function selectedCatBudget(){return data.cats.filter(c=>c.selected!==false).reduce((a,c)=>a+Number(c.budget||0),0)}
 function open(html){$("sheet").innerHTML=html;$("modal").classList.add("open")}
 function close(){$("modal").classList.remove("open")}
@@ -659,16 +659,85 @@ function openPurchase(i){
    const item={id:uid(),name,qty:q,price:money(p||basePrice),normalPrice:money(n||0),offerPrice:money(o||0),isOffer:Boolean($("isOffer").checked&&o>0),market:$("market").value||""};
    target.items.push(item);
    let prod=data.products.find(x=>x.name.toLowerCase()===name.toLowerCase());
-   if(!prod){prod={name,category:category,price:money(basePrice),normalPrice:money(n||0),offerPrice:money(o||0),lastMarket:item.market||"",priceHistory:[]};data.products.push(prod)}
-   prod.category=category;prod.normalPrice=money(n||prod.normalPrice||0);prod.offerPrice=money(o||0);prod.price=money(prod.normalPrice||prod.offerPrice||prod.price||0);prod.lastMarket=item.market||prod.lastMarket||"";
-   prod.priceHistory.push({date:new Date().toLocaleString("it-IT"),category,market:item.market||"",normalPrice:money(n||0),offerPrice:money(o||0),isOffer:item.isOffer,price:money(basePrice)});
-   data.history.push({date:new Date().toISOString(),name,category,qty:q,price:item.price,normalPrice:item.normalPrice,offerPrice:item.offerPrice,isOffer:item.isOffer,market:item.market});
+   if(!prod){
+     prod={name,category,price:money(item.price),normalPrice:money(n||0),offerPrice:item.isOffer?money(o):0,lastMarket:item.market||"",priceHistory:[]};
+     data.products.push(prod);
+   }else{
+     prod.category=category;
+     // Il prezzo originario è il riferimento principale: un'offerta non lo sostituisce.
+     if(n>0) prod.normalPrice=money(n);
+     if(item.isOffer && o>0) prod.offerPrice=money(o);
+     prod.price=money(item.price);
+     prod.lastMarket=item.market||prod.lastMarket||"";
+   }
+   prod.priceHistory.push({
+     date:new Date().toLocaleString("it-IT"),
+     category,market:item.market||"",
+     normalPrice:money(n||0),offerPrice:item.isOffer?money(o):0,
+     isOffer:item.isOffer,price:money(item.price)
+   });
+   data.history.push({id:item.id,date:new Date().toISOString(),name,category,qty:q,price:item.price,normalPrice:item.normalPrice,offerPrice:item.offerPrice,isOffer:item.isOffer,market:item.market});
    save();close();render();
  };
- $("cancel").onclick=close;$("deleteEdit").onclick=()=>{c.items.splice(j,1);if(h)data.history=data.history.filter(z=>z.id!==x.id);save();close();render()};
- $("saveEdit").onclick=()=>{const q=Math.max(1,parseInt($("eq").value||1,10)||1),p=parseFloat(String($("ep").value).replace(",","."));if(!Number.isFinite(p)||p<=0)return;x.qty=q;x.price=money(p);if(h){h.qty=q;h.price=x.price;h.total=money(p*q)}save();close();render()};
+ $("cancel").onclick=close;
 }
 
+function editPurchase(i,j){
+ const c=data.cats[i],x=c?.items?.[j];
+ if(!c||!x){render();return}
+ const h=data.history.find(z=>z.id===x.id);
+ const marketOptions=data.supermarkets.map(m=>`<option value="${esc(m)}" ${m===(x.market||"")?"selected":""}>${esc(m)}</option>`).join("");
+ open(`<h2>✏️ Modifica acquisto</h2>
+ <div class="line"><div><label class="muted">Quantità</label><input id="eq" type="number" min="1" step="1" value="${Number(x.qty||1)}" style="width:100%"></div>
+ <div><label class="muted">Prezzo applicato €</label><input id="ep" type="number" min="0" step=".01" value="${Number(x.price||0)}" style="width:100%"></div></div>
+ <div class="two">
+   <div><label class="muted">Prezzo originario €</label><input id="enp" type="number" min="0" step=".01" value="${x.normalPrice?Number(x.normalPrice):""}" style="width:100%"></div>
+   <div><label class="muted">Offerta €</label><input id="eop" type="number" min="0" step=".01" value="${x.offerPrice?Number(x.offerPrice):""}" style="width:100%"></div>
+ </div>
+ <div class="check"><input id="eisOffer" type="checkbox" ${x.isOffer?"checked":""}><div class="grow"><b>🏷️ È in offerta</b><div class="muted">L'offerta resta separata dal prezzo originario.</div></div></div>
+ <label class="muted">Supermercato</label>
+ <select id="emarket" style="width:100%;margin-top:4px"><option value="">Non specificato</option>${marketOptions}</select>
+ <button id="saveEdit" style="width:100%;margin-top:10px">Salva modifiche</button>
+ <button class="gray" id="deleteEdit" style="width:100%;margin-top:6px">🗑️ Elimina acquisto</button>
+ <button class="gray" id="cancel" style="width:100%;margin-top:6px">Annulla</button>`);
+
+ const updateApplied=()=>{
+   const n=parseFloat(String($("enp").value||0).replace(",","."))||0;
+   const o=parseFloat(String($("eop").value||0).replace(",","."))||0;
+   if($("eisOffer").checked && o>0) $("ep").value=o.toFixed(2);
+   else if(n>0) $("ep").value=n.toFixed(2);
+ };
+ $("eisOffer").onchange=updateApplied;
+ $("enp").oninput=()=>{if(!$("eisOffer").checked)updateApplied()};
+ $("eop").oninput=()=>{if($("eisOffer").checked)updateApplied()};
+ $("cancel").onclick=close;
+ $("deleteEdit").onclick=()=>{
+   if(!confirm(`Eliminare "${x.name||"questo acquisto"}" dalla spesa corrente?`))return;
+   c.items.splice(j,1);
+   if(h)data.history=data.history.filter(z=>z.id!==x.id);
+   save();close();render();
+ };
+ $("saveEdit").onclick=()=>{
+   const q=Math.max(1,parseInt($("eq").value||1,10)||1);
+   const p=parseFloat(String($("ep").value||0).replace(",","."))||0;
+   const n=parseFloat(String($("enp").value||0).replace(",","."))||0;
+   const o=parseFloat(String($("eop").value||0).replace(",","."))||0;
+   const isOffer=$("eisOffer").checked && o>0;
+   if(p<=0){alert("Inserisci un prezzo valido.");return}
+   if(n<=0 && o<=0){alert("Inserisci almeno il prezzo originario oppure quello in offerta.");return}
+   x.qty=q;x.price=money(p);x.normalPrice=money(n);x.offerPrice=money(o);x.isOffer=isOffer;x.market=$("emarket").value||"";
+   if(h){h.name=x.name;h.category=c.name;h.qty=q;h.price=x.price;h.normalPrice=x.normalPrice;h.offerPrice=x.offerPrice;h.isOffer=isOffer;h.market=x.market}
+   const prod=data.products.find(z=>z.name.toLowerCase()===String(x.name||"").toLowerCase());
+   if(prod){
+     prod.category=c.name;
+     if(n>0)prod.normalPrice=money(n);
+     if(isOffer)prod.offerPrice=money(o);
+     prod.price=money(p);
+     prod.lastMarket=x.market||prod.lastMarket||"";
+   }
+   save();close();render();
+ };
+}
 function budgetCats(){
  if(!data.budgetConfigured){alert("Imposta prima il budget generale.");return}
  open(`<h2>🎯 Budget categorie</h2><div class="stat">Budget generale: <b>${euro(data.budget)}</b><br>Totale categorie selezionate: <b id="mTotal">${euro(selectedCatBudget())}</b></div>
