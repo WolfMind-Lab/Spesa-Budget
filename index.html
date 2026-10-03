@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V7.2</title>
+<title>Spesa — Budget V7.3</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -24,7 +24,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V7.2</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V7.3</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -43,7 +43,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=7.2;
+const KEY="spesaBudgetData",VERSION=7.3;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","❄️ Frigorifero",17.5,"Pasta fresca · Pasta sfoglia · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
 ["🛒 SPESA ALIMENTARE","🥛 Latte, yogurt e formaggi",15,"Latte · Yogurt · Mozzarella · Formaggio · Provola · Burro"],
@@ -533,10 +533,31 @@ function migrate(x){
  });
  x.products.forEach(p=>{
    p.priceHistory=Array.isArray(p.priceHistory)?p.priceHistory:[];
-   p.normalPrice=Number(p.normalPrice??p.price??0);
-   p.offerPrice=Number(p.offerPrice??0);
+   const ph=p.priceHistory.filter(h=>String(h.name||p.name).toLowerCase()===String(p.name||"").toLowerCase() || !h.name);
+   const lastWithOffer=[...ph].reverse().find(h=>Number(h.offerPrice||0)>0);
+   const distinctNormals=[...ph].reverse().filter(h=>Number(h.normalPrice||0)>0 && Number(h.normalPrice||0)!==Number(h.offerPrice||0));
+   const lastWithNormal=distinctNormals[0] || [...ph].reverse().find(h=>Number(h.normalPrice||0)>0);
+   p.normalPrice=Number(lastWithNormal?.normalPrice||p.normalPrice||0);
+   p.offerPrice=Number(lastWithOffer?.offerPrice||p.offerPrice||0);
+   if(p.normalPrice>0 && p.offerPrice>0 && p.normalPrice===p.offerPrice){
+     const distinct=[...ph].reverse().find(h=>Number(h.normalPrice||0)>0 && Number(h.normalPrice||0)!==Number(h.offerPrice||0));
+     if(distinct) p.normalPrice=Number(distinct.normalPrice);
+   }
    p.price=Number(p.normalPrice||p.offerPrice||p.price||0);
  });
+ // Ripara i vecchi cataloghi in cui un prezzo in offerta era finito anche nel campo prezzo originario.
+ // Il prezzo originario resta sempre prioritario; l'offerta viene conservata separatamente.
+ x.cats.forEach(c=>c.items.forEach(it=>{
+   const prod=x.products.find(p=>String(p.name||"").toLowerCase()===String(it.name||"").toLowerCase());
+   it.normalPrice=Number(it.normalPrice||0);
+   it.offerPrice=Number(it.offerPrice||0);
+   // Se una vecchia versione aveva copiato l'offerta anche nel prezzo originario,
+   // usa il prezzo originario già ricostruito dal catalogo storico.
+   if(prod && Number(prod.normalPrice||0)>it.normalPrice) it.normalPrice=Number(prod.normalPrice);
+   if(prod && Number(prod.offerPrice||0)>0) it.offerPrice=Number(prod.offerPrice);
+   it.price=Number((it.offerPrice>0?it.offerPrice:it.normalPrice)||it.price||0);
+   it.isOffer=Boolean(it.offerPrice>0);
+ }));
  // Catalogo 6.8: corregge denominazioni senza cancellare prodotti già salvati dall'utente.
  // "Coton fiocchi" non viene più proposto; il nome standard è "Cotton fioc".
  x.schemaVersion=VERSION;
@@ -545,8 +566,8 @@ function migrate(x){
 let data;
 try{data=migrate(JSON.parse(localStorage.getItem(KEY)||"null")||fresh())}catch(e){data=fresh()}
 function save(){data.schemaVersion=VERSION;localStorage.setItem(KEY,JSON.stringify(data))}
-function catSum(c){return (Array.isArray(c.items)?c.items:[]).reduce((a,x)=>a+money(x.price)*Math.max(1,Number(x.qty)||1),0)}
-function spent(){return money(data.cats.reduce((a,c)=>a+catSum(c),0))}
+function catSum(c){return c.items.reduce((a,x)=>a+money(x.price)*Number(x.qty||1),0)}
+function spent(){return data.cats.reduce((a,c)=>a+catSum(c),0)}
 function selectedCatBudget(){return data.cats.filter(c=>c.selected!==false).reduce((a,c)=>a+Number(c.budget||0),0)}
 function open(html){$("sheet").innerHTML=html;$("modal").classList.add("open")}
 function close(){$("modal").classList.remove("open")}
@@ -659,85 +680,40 @@ function openPurchase(i){
    const item={id:uid(),name,qty:q,price:money(p||basePrice),normalPrice:money(n||0),offerPrice:money(o||0),isOffer:Boolean($("isOffer").checked&&o>0),market:$("market").value||""};
    target.items.push(item);
    let prod=data.products.find(x=>x.name.toLowerCase()===name.toLowerCase());
-   if(!prod){
-     prod={name,category,price:money(item.price),normalPrice:money(n||0),offerPrice:item.isOffer?money(o):0,lastMarket:item.market||"",priceHistory:[]};
-     data.products.push(prod);
-   }else{
-     prod.category=category;
-     // Il prezzo originario è il riferimento principale: un'offerta non lo sostituisce.
-     if(n>0) prod.normalPrice=money(n);
-     if(item.isOffer && o>0) prod.offerPrice=money(o);
-     prod.price=money(item.price);
-     prod.lastMarket=item.market||prod.lastMarket||"";
-   }
-   prod.priceHistory.push({
-     date:new Date().toLocaleString("it-IT"),
-     category,market:item.market||"",
-     normalPrice:money(n||0),offerPrice:item.isOffer?money(o):0,
-     isOffer:item.isOffer,price:money(item.price)
-   });
-   data.history.push({id:item.id,date:new Date().toISOString(),name,category,qty:q,price:item.price,normalPrice:item.normalPrice,offerPrice:item.offerPrice,isOffer:item.isOffer,market:item.market});
+   if(!prod){prod={name,category:category,price:money(basePrice),normalPrice:0,offerPrice:0,lastMarket:item.market||"",priceHistory:[]};data.products.push(prod)}
+   prod.category=category;
+   // Priorità: prezzo originario. L'offerta resta separata e non sostituisce l'originario.
+   if(n>0) prod.normalPrice=money(n);
+   if(o>0) prod.offerPrice=money(o); else prod.offerPrice=0;
+   prod.price=money(prod.normalPrice||prod.offerPrice||prod.price||0);
+   prod.lastMarket=item.market||prod.lastMarket||"";
+   prod.priceHistory.push({date:new Date().toLocaleString("it-IT"),category,market:item.market||"",normalPrice:money(n||0),offerPrice:money(o||0),isOffer:item.isOffer,price:money(basePrice)});
+   data.history.push({id:uid(),itemId:item.id,date:new Date().toISOString(),name,category,qty:q,price:item.price,normalPrice:item.normalPrice,offerPrice:item.offerPrice,isOffer:item.isOffer,market:item.market});
    save();close();render();
  };
- $("cancel").onclick=close;
 }
 
 function editPurchase(i,j){
  const c=data.cats[i],x=c?.items?.[j];
- if(!c||!x){render();return}
- const h=data.history.find(z=>z.id===x.id);
- const marketOptions=data.supermarkets.map(m=>`<option value="${esc(m)}" ${m===(x.market||"")?"selected":""}>${esc(m)}</option>`).join("");
+ if(!x)return;
+ const h=[...data.history].reverse().find(z=>z.itemId===x.id) || [...data.history].reverse().find(z=>z.name===x.name && z.category===c.name);
+ const normal=Number(x.normalPrice||0),offer=Number(x.offerPrice||0),market=x.market||h?.market||"";
  open(`<h2>✏️ Modifica acquisto</h2>
- <div class="line"><div><label class="muted">Quantità</label><input id="eq" type="number" min="1" step="1" value="${Number(x.qty||1)}" style="width:100%"></div>
- <div><label class="muted">Prezzo applicato €</label><input id="ep" type="number" min="0" step=".01" value="${Number(x.price||0)}" style="width:100%"></div></div>
- <div class="two">
-   <div><label class="muted">Prezzo originario €</label><input id="enp" type="number" min="0" step=".01" value="${x.normalPrice?Number(x.normalPrice):""}" style="width:100%"></div>
-   <div><label class="muted">Offerta €</label><input id="eop" type="number" min="0" step=".01" value="${x.offerPrice?Number(x.offerPrice):""}" style="width:100%"></div>
- </div>
- <div class="check"><input id="eisOffer" type="checkbox" ${x.isOffer?"checked":""}><div class="grow"><b>🏷️ È in offerta</b><div class="muted">L'offerta resta separata dal prezzo originario.</div></div></div>
- <label class="muted">Supermercato</label>
- <select id="emarket" style="width:100%;margin-top:4px"><option value="">Non specificato</option>${marketOptions}</select>
- <button id="saveEdit" style="width:100%;margin-top:10px">Salva modifiche</button>
- <button class="gray" id="deleteEdit" style="width:100%;margin-top:6px">🗑️ Elimina acquisto</button>
- <button class="gray" id="cancel" style="width:100%;margin-top:6px">Annulla</button>`);
-
- const updateApplied=()=>{
-   const n=parseFloat(String($("enp").value||0).replace(",","."))||0;
-   const o=parseFloat(String($("eop").value||0).replace(",","."))||0;
-   if($("eisOffer").checked && o>0) $("ep").value=o.toFixed(2);
-   else if(n>0) $("ep").value=n.toFixed(2);
- };
- $("eisOffer").onchange=updateApplied;
- $("enp").oninput=()=>{if(!$("eisOffer").checked)updateApplied()};
- $("eop").oninput=()=>{if($("eisOffer").checked)updateApplied()};
- $("cancel").onclick=close;
- $("deleteEdit").onclick=()=>{
-   if(!confirm(`Eliminare "${x.name||"questo acquisto"}" dalla spesa corrente?`))return;
-   c.items.splice(j,1);
-   if(h)data.history=data.history.filter(z=>z.id!==x.id);
-   save();close();render();
- };
- $("saveEdit").onclick=()=>{
-   const q=Math.max(1,parseInt($("eq").value||1,10)||1);
-   const p=parseFloat(String($("ep").value||0).replace(",","."))||0;
-   const n=parseFloat(String($("enp").value||0).replace(",","."))||0;
-   const o=parseFloat(String($("eop").value||0).replace(",","."))||0;
-   const isOffer=$("eisOffer").checked && o>0;
-   if(p<=0){alert("Inserisci un prezzo valido.");return}
-   if(n<=0 && o<=0){alert("Inserisci almeno il prezzo originario oppure quello in offerta.");return}
-   x.qty=q;x.price=money(p);x.normalPrice=money(n);x.offerPrice=money(o);x.isOffer=isOffer;x.market=$("emarket").value||"";
-   if(h){h.name=x.name;h.category=c.name;h.qty=q;h.price=x.price;h.normalPrice=x.normalPrice;h.offerPrice=x.offerPrice;h.isOffer=isOffer;h.market=x.market}
-   const prod=data.products.find(z=>z.name.toLowerCase()===String(x.name||"").toLowerCase());
-   if(prod){
-     prod.category=c.name;
-     if(n>0)prod.normalPrice=money(n);
-     if(isOffer)prod.offerPrice=money(o);
-     prod.price=money(p);
-     prod.lastMarket=x.market||prod.lastMarket||"";
-   }
-   save();close();render();
- };
+ <div class="two"><div><label class="muted">Quantità</label><input id="eq" type="number" min="1" step="1" value="${Number(x.qty||1)}" style="width:100%"></div><div><label class="muted">Prezzo originario €</label><input id="en" type="number" min="0" step=".01" value="${normal||""}" style="width:100%"></div></div>
+ <div style="margin-top:8px"><label class="muted">Prezzo offerta € (facoltativo)</label><input id="eo" type="number" min="0" step=".01" value="${offer||""}" style="width:100%"></div>
+ <div style="margin-top:8px"><label class="muted">Supermercato</label><select id="em" style="width:100%"><option value="">Non specificato</option>${data.supermarkets.map(m=>`<option ${m===market?"selected":""}>${esc(m)}</option>`).join("")}</select></div>
+ <div class="successbox" id="editTotal" style="margin-top:8px">Totale: <b>0,00 €</b></div>
+ <button id="saveEdit" style="width:100%;margin-top:8px">Salva</button>
+ <button class="gray" id="deleteEdit" style="width:100%;margin-top:6px">🗑️ Elimina</button>
+ <button class="gray" id="cancelEdit" style="width:100%;margin-top:6px">Annulla</button>`);
+ const preview=()=>{const q=Math.max(1,parseInt($("eq").value||1,10)||1),n=parseFloat(String($("en").value||0).replace(",","."))||0,o=parseFloat(String($("eo").value||0).replace(",","."))||0,p=o>0?o:n;$("editTotal").innerHTML=`Totale: <b>${euro(money(p*q))}</b>`;return{q,n,o,p}};
+ ["eq","en","eo"].forEach(id=>$(id).oninput=preview);
+ $("cancelEdit").onclick=close;
+ $("deleteEdit").onclick=()=>{if(!confirm(`Eliminare "${x.name}" da questa spesa?`))return;c.items.splice(j,1);data.history=data.history.filter(z=>z.itemId!==x.id);save();close();render()};
+ $("saveEdit").onclick=()=>{const {q,n,o,p}=preview();if(p<=0){alert("Inserisci un prezzo originario oppure un prezzo in offerta.");return}x.qty=q;x.normalPrice=money(n);x.offerPrice=money(o);x.isOffer=o>0;x.price=money(p);x.market=$("em").value||"";if(h){h.qty=q;h.normalPrice=money(n);h.offerPrice=money(o);h.isOffer=o>0;h.price=x.price;h.market=x.market}let prod=data.products.find(z=>z.name.toLowerCase()===x.name.toLowerCase());if(prod){if(n>0)prod.normalPrice=money(n);if(o>0)prod.offerPrice=money(o);else prod.offerPrice=0;prod.price=money(prod.normalPrice||prod.offerPrice||prod.price||0);prod.lastMarket=x.market||prod.lastMarket||"";prod.category=c.name}save();close();render()};
+ preview();
 }
+
 function budgetCats(){
  if(!data.budgetConfigured){alert("Imposta prima il budget generale.");return}
  open(`<h2>🎯 Budget categorie</h2><div class="stat">Budget generale: <b>${euro(data.budget)}</b><br>Totale categorie selezionate: <b id="mTotal">${euro(selectedCatBudget())}</b></div>
@@ -810,11 +786,66 @@ function products(){
  $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.ph];const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} · ${esc(h.market||"")}</small></span><span>Orig. ${euro(h.normalPrice||h.price)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}</div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" onclick="products()">Indietro</button>`) });
 }
 
+function ensureProductPrice(name, category, normalPrice, offerPrice, market, dateLabel){
+ const n=money(normalPrice||0),o=money(offerPrice||0);
+ if(!name||n<=0 && o<=0)return null;
+ let prod=data.products.find(x=>String(x.name||"").toLowerCase()===String(name).toLowerCase());
+ if(!prod){prod={name,category:category||inferCategory(name)||"",price:0,normalPrice:0,offerPrice:0,lastMarket:market||"",priceHistory:[]};data.products.push(prod)}
+ prod.category=category||prod.category||inferCategory(name)||"";
+ // The original price is always independent from the offer.
+ if(n>0) prod.normalPrice=n;
+ if(o>0) prod.offerPrice=o;
+ else if(n>0 && prod.offerPrice>0 && prod.offerPrice===n) prod.offerPrice=0;
+ prod.price=money(prod.normalPrice||prod.offerPrice||prod.price||0);
+ if(market)prod.lastMarket=market;
+ prod.priceHistory=Array.isArray(prod.priceHistory)?prod.priceHistory:[];
+ prod.priceHistory.push({date:dateLabel||new Date().toLocaleString("it-IT"),category:prod.category,market:market||"",normalPrice:n,offerPrice:o,isOffer:o>0,price:money(n||o)});
+ return prod;
+}
+
+function manualPrice(){
+ const all=Object.values(PRODUCT_CATALOG).flat();
+ const saved=data.products.map(p=>p.name);
+ const list=[...new Set([...all,...saved])].sort((a,b)=>a.localeCompare(b,"it"));
+ open(`<h2>➕ Salva prezzo</h2><p class="muted">Aggiungi un prezzo al catalogo senza registrare una spesa corrente. È utile per prezzi letti da volantini, scaffali o appunti.</p>
+ <div class="product-picker"><input id="mpname" placeholder="Scegli o scrivi il prodotto" autocomplete="off"><div id="mpopts" class="product-options"></div></div>
+ <div class="two" style="margin-top:8px"><div><label class="muted">Categoria</label><select id="mpcat" style="width:100%"><option value="">Automatico</option>${data.cats.map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join("")}</select></div><div><label class="muted">Supermercato</label><select id="mpmarket" style="width:100%"><option value="">Non specificato</option>${data.supermarkets.map(m=>`<option>${esc(m)}</option>`).join("")}</select></div></div>
+ <div class="two" style="margin-top:8px"><div><label class="muted">Prezzo originario €</label><input id="mpnormal" type="number" min="0" step=".01" style="width:100%"></div><div><label class="muted">Prezzo offerta €</label><input id="mpo" type="number" min="0" step=".01" style="width:100%"></div></div>
+ <div class="muted" style="margin-top:7px">Il prezzo originario resta il riferimento principale. L'offerta viene conservata separatamente.</div>
+ <button id="mpsave" style="width:100%;margin-top:9px">💾 Salva nel catalogo</button><button class="gray" id="close" style="width:100%;margin-top:6px">Annulla</button>`);
+ const opts=$("mpopts"),inp=$("mpname");
+ const renderOpts=()=>{const q=inp.value.trim().toLowerCase();const f=list.filter(n=>!q||n.toLowerCase().includes(q));opts.innerHTML=f.slice(0,100).map(n=>`<button type="button" class="product-option" data-mpn="${esc(n)}">${esc(n)}</button>`).join("")||`<div class="product-empty">Puoi usare “${esc(inp.value.trim())}” come nuovo prodotto.</div>`;opts.querySelectorAll('[data-mpn]').forEach(b=>b.onclick=()=>{inp.value=b.dataset.mpn;const p=data.products.find(x=>x.name.toLowerCase()===b.dataset.mpn.toLowerCase());if(p){$("mpcat").value=p.category||"";$("mpmarket").value=p.lastMarket||"";$("mpnormal").value=p.normalPrice||"";$("mpo").value=p.offerPrice||""}opts.classList.remove('open')})};
+ inp.onfocus=()=>{renderOpts();opts.classList.add('open')};inp.oninput=()=>{renderOpts();opts.classList.add('open')};
+ $("mpsave").onclick=()=>{const name=inp.value.trim();if(!name){alert("Inserisci o scegli un prodotto.");return}const n=Number($("mpnormal").value||0),o=Number($("mpo").value||0);if(n<=0&&o<=0){alert("Inserisci almeno un prezzo.");return}const cat=$("mpcat").value||inferCategory(name)||"";ensureProductPrice(name,cat,n,o,$("mpmarket").value||"");save();priceCatalog()};
+ $("close").onclick=close;
+}
+
+function importOldReceipt(){
+ let rows=[{name:"",category:"",qty:1,normal:0,offer:0}];
+ const render=()=>{const html=rows.map((r,i)=>`<div class="stat"><div class="two"><input data-ir-name="${i}" placeholder="Prodotto" value="${esc(r.name)}"><input data-ir-qty="${i}" type="number" min="1" step="1" value="${r.qty||1}" placeholder="Qtà"></div><div class="two" style="margin-top:6px"><input data-ir-normal="${i}" type="number" min="0" step=".01" value="${r.normal||""}" placeholder="Prezzo originario €"><input data-ir-offer="${i}" type="number" min="0" step=".01" value="${r.offer||""}" placeholder="Offerta €"></div><select data-ir-cat="${i}" style="width:100%;margin-top:6px"><option value="">Categoria automatica</option>${data.cats.map(c=>`<option value="${esc(c.name)}" ${r.category===c.name?'selected':''}>${esc(c.name)}</option>`).join("")}</select><button class="gray small" data-ir-del="${i}" style="margin-top:6px">🗑️ Rimuovi riga</button></div>`).join("");
+ $("irRows").innerHTML=html;
+ $("irRows").querySelectorAll('[data-ir-name]').forEach(e=>e.oninput=()=>rows[+e.dataset.irName].name=e.value);
+ $("irRows").querySelectorAll('[data-ir-qty]').forEach(e=>e.oninput=()=>rows[+e.dataset.irQty].qty=Math.max(1,Number(e.value)||1));
+ $("irRows").querySelectorAll('[data-ir-normal]').forEach(e=>e.oninput=()=>rows[+e.dataset.irNormal].normal=Number(e.value)||0);
+ $("irRows").querySelectorAll('[data-ir-offer]').forEach(e=>e.oninput=()=>rows[+e.dataset.irOffer].offer=Number(e.value)||0);
+ $("irRows").querySelectorAll('[data-ir-cat]').forEach(e=>e.onchange=()=>rows[+e.dataset.irCat].category=e.value);
+ $("irRows").querySelectorAll('[data-ir-del]').forEach(e=>e.onclick=()=>{rows.splice(+e.dataset.irDel,1);if(!rows.length)rows.push({name:"",category:"",qty:1,normal:0,offer:0});render()});
+ };
+ open(`<h2>🧾 Importa spesa precedente</h2><p class="muted">Inserisci una vecchia spesa recuperata da uno scontrino. Non verrà aggiunta alla spesa corrente: entrerà nello storico e aggiornerà il catalogo prezzi.</p><div class="two"><div><label class="muted">Data</label><input id="irDate" type="date" value="${new Date().toISOString().slice(0,10)}" style="width:100%"></div><div><label class="muted">Supermercato</label><select id="irMarket" style="width:100%"><option value="">Non specificato</option>${data.supermarkets.map(m=>`<option>${esc(m)}</option>`).join("")}</select></div></div><div id="irRows" style="margin-top:8px"></div><button class="gray" id="irAdd" style="width:100%">＋ Aggiungi prodotto</button><button id="irSave" style="width:100%;margin-top:7px">🧾 Salva spesa precedente</button><button class="gray" id="close" style="width:100%;margin-top:6px">Annulla</button>`);
+ render();
+ $("irAdd").onclick=()=>{rows.push({name:"",category:"",qty:1,normal:0,offer:0});render()};
+ $("irSave").onclick=()=>{const valid=rows.filter(r=>r.name.trim()&&(r.normal>0||r.offer>0));if(!valid.length){alert("Inserisci almeno un prodotto con un prezzo.");return}const date=$("irDate").value?new Date($("irDate").value+"T12:00:00"):new Date();const market=$("irMarket").value||"";const items=valid.map(r=>{const cat=r.category||inferCategory(r.name)||"";const n=money(r.normal),o=money(r.offer),unit=money(n||o);ensureProductPrice(r.name.trim(),cat,n,o,market,date.toLocaleDateString("it-IT"));return {id:uid(),name:r.name.trim(),qty:Math.max(1,Number(r.qty)||1),price:o>0?o:n,normalPrice:n,offerPrice:o,isOffer:o>0,market,cat,section:(data.cats.find(c=>c.name===cat)||{}).section||""}});const total=money(items.reduce((a,x)=>a+money(x.price)*x.qty,0));const receipt={id:uid(),date:date.toISOString(),label:date.toLocaleString("it-IT"),items,total,markets:market?[market]:[] ,imported:true};data.receipts.push(receipt);save();history();};
+ $("close").onclick=close;
+}
+
 function priceCatalog(){
- const rows=data.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).map((p,i)=>`<div class="item"><div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.lastMarket?" · 🏪 "+esc(p.lastMarket):""}</div></div><div style="text-align:right"><b>${p.normalPrice?euro(p.normalPrice):"—"}</b>${p.offerPrice?`<div class="muted">🏷️ ${euro(p.offerPrice)}</div>`:""}</div></div>`).join("")||"<p>Il catalogo prezzi si riempirà quando salverai gli acquisti.</p>";
- open(`<h2>💶 Catalogo prezzi</h2><p class="muted">Il prezzo originario viene salvato come riferimento principale. Se esiste un'offerta, viene conservata separatamente e non sostituisce il prezzo originario.</p><input id="priceSearch" class="search" placeholder="Cerca prodotto"><div id="priceRows">${rows}</div><button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
- const renderRows=()=>{const q=$("priceSearch").value.toLowerCase().trim();$("priceRows").innerHTML=data.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).filter(p=>!q||p.name.toLowerCase().includes(q)||String(p.category).toLowerCase().includes(q)).map(p=>`<div class="item"><div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.lastMarket?" · 🏪 "+esc(p.lastMarket):""}</div></div><div style="text-align:right"><b>${p.normalPrice?euro(p.normalPrice):"—"}</b>${p.offerPrice?`<div class="muted">🏷️ ${euro(p.offerPrice)}</div>`:""}</div></div>`).join("")||"<p>Nessun risultato.</p>"};
- $("priceSearch").oninput=renderRows;$("close").onclick=close;
+ const makeRows=(q="")=>data.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).filter(p=>!q||p.name.toLowerCase().includes(q)||String(p.category||"").toLowerCase().includes(q)).map(p=>`<div class="item" data-price-item="${esc(p.name)}"><div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.lastMarket?" · 🏪 "+esc(p.lastMarket):""}</div></div><div style="text-align:right"><b>${p.normalPrice?euro(p.normalPrice):"—"}</b>${p.offerPrice?`<div class="muted">🏷️ ${euro(p.offerPrice)}</div>`:""}</div></div>`).join("")||"<p>Nessun risultato.</p>";
+ open(`<h2>💶 Catalogo prezzi</h2><p class="muted">Il prezzo originario è il riferimento principale. L'eventuale offerta viene conservata separatamente e non sostituisce il prezzo originario.</p><div class="actions"><button id="addManual">＋ Salva prezzo</button><button class="gray" id="importOld">🧾 Importa spesa precedente</button></div><input id="priceSearch" class="search" placeholder="Cerca prodotto" autocomplete="off"><div id="priceRows">${makeRows()}</div><button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
+ const renderRows=()=>{const q=$("priceSearch").value.toLowerCase().trim();$("priceRows").innerHTML=makeRows(q)};
+ $("priceSearch").oninput=renderRows;
+ $("priceSearch").onkeydown=e=>{if(e.key==="Escape"){$("priceSearch").value="";renderRows();}};
+ $("priceRows").onclick=e=>{const row=e.target.closest('[data-price-item]');if(!row)return;const name=row.dataset.priceItem,p=data.products.find(x=>x.name===name);if(!p)return;const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} ${h.market?"· 🏪 "+esc(h.market):""}</small></span><span>Orig. ${h.normalPrice?euro(h.normalPrice):"—"}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}</div><div class="actions"><button id="addAgain">＋ Aggiungi nuovo prezzo</button></div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" id="backPrice">Indietro</button>`);$("addAgain").onclick=()=>manualPrice();$("backPrice").onclick=priceCatalog};
+ $("addManual").onclick=manualPrice;$("importOld").onclick=importOldReceipt;$("close").onclick=close;
 }
 
 function finishShopping(){
@@ -886,11 +917,11 @@ function cats(){
 
 function backup(){
  open(`<h2>💾 Backup</h2><p class="muted">Salva budget, categorie, acquisti, lista, prodotti, offerte, supermercati, dispensa e storico.</p><button id="export" style="width:100%">⬇️ Esporta backup</button><button class="gray" id="imp" style="width:100%;margin-top:6px">⬆️ Importa backup</button><input id="file" type="file" accept=".json,application/json" hidden><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
- $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v6.5-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
+ $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v7.3-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V6.5</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V7.3</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
  $("close").onclick=close;
  $("reset").onclick=()=>{if(confirm("Azzera il budget generale e tutti i budget delle categorie? Gli scontrini e i prodotti NON verranno cancellati.")){data.budget=0;data.budgetConfigured=false;data.categoryBudgetsConfigured=false;data.cats.forEach(c=>{c.budget=0;c.selected=false});save();close();render()}};
  $("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
