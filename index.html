@@ -80,7 +80,6 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 
 /* V8.6.2 — visualizzazione ingrandita delle foto prodotto */
-/* V8.7 — anagrafica prodotto strutturata e riepilogo statistico prezzi */
 .photo-preview img,.product-thumb{cursor:zoom-in;touch-action:manipulation}
 #photoLightbox{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.94);padding:calc(58px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));overflow:auto}
 #photoLightbox.open{display:flex}
@@ -89,6 +88,9 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 #photoLightbox .photo-close{position:fixed;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:2;min-width:46px;min-height:46px;border-radius:50%;font-size:22px;background:#fff;color:#111}
 #photoLightbox .photo-caption{position:fixed;left:12px;right:64px;top:calc(20px + env(safe-area-inset-top));color:#fff;font-size:14px;font-weight:650;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
+
+/* V8.7 — campi aggiuntivi dell’anagrafica prodotto */
+#prName,#prBrand,#prLine,#prVariant,#prBarcode,#prSize,#prMarket,#prNotes{width:100%;min-width:0}
 </style>
 </head>
 <body>
@@ -611,6 +613,9 @@ function migrate(x){
    c.items=Array.isArray(c.items)?c.items.map(v=>typeof v==="number"?{id:uid(),name:"",qty:1,price:v,normalPrice:v,offerPrice:0,isOffer:false}:{...v,id:v.id||uid(),name:v.name||"",qty:Number(v.qty||1),price:Number(v.price||0),normalPrice:Number(v.normalPrice??v.price??0),offerPrice:Number(v.offerPrice||0),isOffer:Boolean(v.isOffer),measureQty:Number(v.measureQty||0),measureUnit:v.measureUnit||"",packageSize:Number(v.packageSize||0),packageUnit:v.packageUnit||""}):[];
  });
  x.products.forEach(p=>{
+   p.brand=String(p.brand||"");p.line=String(p.line||"");p.variant=String(p.variant||"");
+   p.barcode=String(p.barcode||"");p.packageSize=Number(p.packageSize||0);
+   p.packageUnit=String(p.packageUnit||"");p.productNotes=String(p.productNotes||"");
    p.priceHistory=Array.isArray(p.priceHistory)?p.priceHistory:[];
    const ph=p.priceHistory.filter(h=>String(h.name||p.name).toLowerCase()===String(p.name||"").toLowerCase() || !h.name);
    const lastWithOffer=[...ph].reverse().find(h=>Number(h.offerPrice||0)>0);
@@ -623,7 +628,7 @@ function migrate(x){
      if(distinct) p.normalPrice=Number(distinct.normalPrice);
    }
    p.price=Number(p.normalPrice||p.offerPrice||p.price||0);
-   p.photo=p.photo||"";p.qualityRating=Number(p.qualityRating||0);p.brand=p.brand||"";p.line=p.line||"";p.variant=p.variant||"";p.barcode=p.barcode||"";p.packageSize=Number(p.packageSize||0);p.packageUnit=p.packageUnit||"";
+   p.photo=p.photo||"";p.qualityRating=Number(p.qualityRating||0);
  });
  // Ripara i vecchi cataloghi in cui un prezzo in offerta era finito anche nel campo prezzo originario.
  // Il prezzo originario resta sempre prioritario; l'offerta viene conservata separatamente.
@@ -923,33 +928,56 @@ function list(){
 }
 function products(restorePosition=false){
  const __panelY=restorePosition?$("sheet").scrollTop:0;
- const rows=data.products.map((p,i)=>`<div class="item">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.brand?` · ${esc(p.brand)}`:""}${p.line?` · ${esc(p.line)}`:""}${p.variant?` · ${esc(p.variant)}`:""}${p.barcode?` · EAN ${esc(p.barcode)}`:""}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div class="actions"><button class="gray small" data-edit-product="${i}">Modifica</button><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
- open(`<div class="panelbar"><button class="gray" id="closeTop">Chiudi ✕</button></div><h2>🏷️ Prodotti</h2><p class="muted">Il prezzo originario è il riferimento principale; il prezzo in offerta viene conservato separatamente quando disponibile. Puoi correggere qui la categoria proposta per gli acquisti futuri.</p>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
- $("close").onclick=close;$("closeTop").onclick=close;$('sheet').querySelectorAll('[data-del]').forEach(e=>e.onclick=()=>{data.products.splice(+e.dataset.del,1);save();products(true)});
- $('sheet').querySelectorAll('[data-edit-product]').forEach(e=>e.onclick=()=>{
-   const p=data.products[+e.dataset.editProduct];
-   open(`<h2>✏️ Anagrafica prodotto</h2>
-   <label class="muted">Nome prodotto</label><input id="epName" value="${esc(p.name)}" style="width:100%">
-   <div class="two" style="margin-top:8px"><div><label class="muted">Marca</label><input id="epBrand" value="${esc(p.brand||"")}" placeholder="Es. Barilla" style="width:100%"></div><div><label class="muted">Linea</label><input id="epLine" value="${esc(p.line||"")}" placeholder="Es. Integrale" style="width:100%"></div></div>
-   <div class="two" style="margin-top:8px"><div><label class="muted">Variante</label><input id="epVariant" value="${esc(p.variant||"")}" placeholder="Es. penne rigate" style="width:100%"></div><div><label class="muted">Codice a barre / EAN</label><input id="epBarcode" value="${esc(p.barcode||"")}" inputmode="numeric" style="width:100%"></div></div>
-   <label class="muted" style="display:block;margin-top:8px">Categoria</label><select id="epCat" style="width:100%">${data.cats.map(c=>`<option value="${esc(c.name)}" ${c.name===(p.category||"")?"selected":""}>${esc(c.name)}</option>`).join("")}</select>
-   <div class="two" style="margin-top:8px"><div><label class="muted">Formato confezione</label><input id="epSize" type="number" min="0" step=".001" value="${Number(p.packageSize||0)||""}" style="width:100%"></div><div><label class="muted">Unità</label><select id="epUnit" style="width:100%"><option value="" ${!p.packageUnit?"selected":""}>Non specificata</option>${["g","kg","ml","L","pz"].map(u=>`<option ${p.packageUnit===u?"selected":""}>${u}</option>`).join("")}</select></div></div>
-   <button id="epSave" style="width:100%;margin-top:12px">Salva anagrafica</button><button class="gray" id="epCancel" style="width:100%;margin-top:6px">Annulla</button>`);
-   $("epCancel").onclick=()=>products(true);
-   $("epSave").onclick=()=>{
-     const oldName=p.name,newName=$("epName").value.trim();if(!newName){alert("Inserisci il nome del prodotto.");return}
-     const target=data.cats.find(c=>c.name===$("epCat").value);if(!target){alert("Categoria non valida.");return}
-     if(data.products.some(q=>q!==p&&q.name.toLowerCase()===newName.toLowerCase())){alert("Esiste già un prodotto con questo nome. Usa un nome distinto per non unire articoli diversi.");return}
-     p.name=newName;p.brand=$("epBrand").value.trim();p.line=$("epLine").value.trim();p.variant=$("epVariant").value.trim();p.barcode=$("epBarcode").value.trim();p.category=target.name;p.packageSize=Math.max(0,Number($("epSize").value)||0);p.packageUnit=$("epUnit").value;
-     (p.priceHistory||[]).forEach(h=>{h.category=target.name});
-     data.receipts.forEach(r=>r.items.forEach(it=>{if(String(it.name).toLowerCase()===oldName.toLowerCase()){it.name=newName;it.cat=target.name;it.packageSize=p.packageSize||it.packageSize;it.packageUnit=p.packageUnit||it.packageUnit}}));
-     data.cats.forEach(c=>c.items.forEach(it=>{if(String(it.name).toLowerCase()===oldName.toLowerCase())it.name=newName}));
-     data.history.forEach(h=>{if(String(h.name).toLowerCase()===oldName.toLowerCase()){h.name=newName;h.category=target.name}});
-     save();products(true);
-   };
- });
+ const rows=data.products.map((p,i)=>`<div class="item">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc([p.brand,p.line,p.variant].filter(Boolean).join(" · "))}${p.barcode?` · EAN ${esc(p.barcode)}`:""}${p.category?`<br>${esc(p.category)}`:"Categoria non assegnata"}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div class="actions"><button class="gray small" data-anagrafica="${i}">Anagrafica</button><button class="gray small" data-edit-product="${i}">Modifica</button><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
+ open(`<div class="panelbar"><button class="gray" id="closeTop">Chiudi ✕</button></div><h2>🏷️ Prodotti e anagrafica</h2><p class="muted">L'anagrafica identifica ogni prodotto con marca, linea, variante, codice a barre e formato. I dati già presenti restano conservati; i campi nuovi sono facoltativi.</p><button id="newProductRecord" style="width:100%;margin:8px 0 12px">＋ Crea nuova anagrafica</button>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
+ $("close").onclick=close;$("closeTop").onclick=close;
+ $("newProductRecord").onclick=()=>openProductRecord(null,()=>products(true));
+ $('sheet').querySelectorAll('[data-anagrafica]').forEach(e=>e.onclick=()=>openProductRecord(data.products[+e.dataset.anagrafica],()=>products(true)));
+ $('sheet').querySelectorAll('[data-del]').forEach(e=>e.onclick=()=>{if(!confirm("Eliminare questo prodotto dal catalogo? Gli scontrini e lo storico già registrati non verranno cancellati."))return;data.products.splice(+e.dataset.del,1);save();products(true)});
+ $('sheet').querySelectorAll('[data-edit-product]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.editProduct];const name=prompt("Nome prodotto",p.name);if(name===null)return;const cat=prompt("Categoria esatta (scegli tra quelle mostrate nell'app):\n"+data.cats.map(c=>c.name).join("\n"),p.category||"");if(cat===null)return;const target=data.cats.find(c=>c.name===cat.trim());if(!target){alert("Categoria non riconosciuta: nessuna modifica applicata.");return}p.name=name.trim()||p.name;p.category=target.name;(p.priceHistory||[]).forEach(h=>h.category=target.name);data.receipts.forEach(r=>r.items.forEach(it=>{if(String(it.name).toLowerCase()===String(p.name).toLowerCase())it.cat=target.name}));data.history.forEach(h=>{if(String(h.name).toLowerCase()===String(p.name).toLowerCase())h.category=target.name});save();products(true)});
  if(restorePosition)requestAnimationFrame(()=>{$("sheet").scrollTop=__panelY});
- $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.ph];const hist=(p.priceHistory||[]).map(h=>Number(h.offerPrice||h.normalPrice||h.price||0)).filter(v=>v>0);const min=hist.length?Math.min(...hist):0,max=hist.length?Math.max(...hist):0,avg=hist.length?hist.reduce((a,b)=>a+b,0)/hist.length:0;const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} · ${esc(h.market||"")}</small></span><span>Orig. ${euro(h.normalPrice||h.price)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}<br><b>Rilevazioni:</b> ${hist.length}<br><b>Minimo:</b> ${min?euro(min):"—"} · <b>Massimo:</b> ${max?euro(max):"—"}<br><b>Media semplice:</b> ${avg?euro(avg):"—"}</div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" id="backProducts">Indietro</button>`);$("backProducts").onclick=()=>products(true) });
+ $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.ph];const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} · ${esc(h.market||"")}</small></span><span>Orig. ${euro(h.normalPrice||h.price)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}</div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" id="productHistoryBack">Indietro</button>`);$("productHistoryBack").onclick=()=>products(true)});
+}
+
+function openProductRecord(product=null,onDone=products){
+ const p=product||{name:"",brand:"",line:"",variant:"",barcode:"",category:"",packageSize:0,packageUnit:"",normalPrice:0,offerPrice:0,lastMarket:"",qualityRating:0,photo:"",productNotes:"",priceHistory:[]};
+ let photo=p.photo||"";
+ const catOptions=data.cats.map(c=>`<option value="${esc(c.name)}" ${p.category===c.name?"selected":""}>${esc(c.name)}</option>`).join("");
+ const marketOptions=[...new Set([...(data.supermarkets||[]),p.lastMarket].filter(Boolean))].map(m=>`<option ${p.lastMarket===m?"selected":""}>${esc(m)}</option>`).join("");
+ open(`<h2>${product?"✏️ Modifica anagrafica":"＋ Nuova anagrafica prodotto"}</h2>
+ <p class="muted">Compila i dati che conosci. Non è necessario inserirli tutti. Il nome identifica il prodotto; marca, linea e variante aiutano a distinguere prodotti simili.</p>
+ <label class="muted">Nome prodotto *</label><input id="prName" value="${esc(p.name)}" placeholder="Es. Mozzarella" style="width:100%">
+ <div class="two" style="margin-top:8px"><div><label class="muted">Marca</label><input id="prBrand" value="${esc(p.brand||"")}" placeholder="Es. marca"></div><div><label class="muted">Linea</label><input id="prLine" value="${esc(p.line||"")}" placeholder="Es. classica"></div></div>
+ <label class="muted" style="display:block;margin-top:8px">Variante / tipologia</label><input id="prVariant" value="${esc(p.variant||"")}" placeholder="Es. senza lattosio, affumicata…" style="width:100%">
+ <div class="two" style="margin-top:8px"><div><label class="muted">Codice a barre (EAN)</label><input id="prBarcode" inputmode="numeric" value="${esc(p.barcode||"")}" placeholder="EAN / GTIN"></div><div><label class="muted">Categoria</label><select id="prCategory" style="width:100%"><option value="">Da assegnare</option>${catOptions}</select></div></div>
+ <div class="two" style="margin-top:8px"><div><label class="muted">Formato confezione</label><input id="prSize" type="number" min="0" step="any" value="${p.packageSize||""}" placeholder="Es. 500"></div><div><label class="muted">Unità</label><select id="prUnit" style="width:100%"><option value="">Nessuna</option>${["g","kg","ml","L","pezzi"].map(u=>`<option ${p.packageUnit===u?"selected":""}>${u}</option>`).join("")}</select></div></div>
+ <div class="two" style="margin-top:8px"><div><label class="muted">Prezzo normale €</label><input id="prNormal" type="number" min="0" step=".01" value="${p.normalPrice||""}"></div><div><label class="muted">Prezzo offerta €</label><input id="prOffer" type="number" min="0" step=".01" value="${p.offerPrice||""}"></div></div>
+ <label class="muted" style="display:block;margin-top:8px">Supermercato / punto vendita</label><input id="prMarket" list="prMarketList" value="${esc(p.lastMarket||"")}" placeholder="Supermercato" style="width:100%"><datalist id="prMarketList">${marketOptions}</datalist>
+ <div class="qualityline"><label class="muted">Valutazione personale qualità (1–5)</label><select id="prQuality"><option value="0">Non valutato</option>${[1,2,3,4,5].map(v=>`<option value="${v}" ${Number(p.qualityRating||0)===v?"selected":""}>${v}/5</option>`).join("")}</select></div>
+ <label class="muted" style="display:block;margin-top:8px">Foto del prodotto</label><input id="prPhoto" type="file" accept="image/*" style="width:100%"><div id="prPhotoPreview" class="photo-preview"></div>
+ <label class="muted" style="display:block;margin-top:8px">Note</label><input id="prNotes" value="${esc(p.productNotes||"")}" placeholder="Dettagli aggiuntivi" style="width:100%">
+ <div class="actions"><button id="prSave" style="width:100%">💾 Salva anagrafica</button><button id="prCancel" class="gray" style="width:100%">Annulla</button></div>`);
+ bindPhotoInput("prPhoto","prPhotoPreview",()=>photo,v=>photo=v);
+ $("prCancel").onclick=()=>onDone();
+ $("prSave").onclick=()=>{
+  const name=$("prName").value.trim();if(!name){alert("Inserisci il nome del prodotto.");return}
+  const barcode=$("prBarcode").value.trim();
+  const duplicate=data.products.find(q=>q!==product&&barcode&&String(q.barcode||"").trim()===barcode);
+  if(duplicate&&!confirm(`Il codice a barre è già associato a “${duplicate.name}”. Vuoi comunque salvare questa anagrafica?`))return;
+  const category=$("prCategory").value;
+  const normal=money($("prNormal").value),offer=money($("prOffer").value);
+  const previousName=p.name;
+  Object.assign(p,{name,brand:$("prBrand").value.trim(),line:$("prLine").value.trim(),variant:$("prVariant").value.trim(),barcode,category,packageSize:Number($("prSize").value||0),packageUnit:$("prUnit").value,normalPrice:normal||p.normalPrice||0,offerPrice:offer,price:money(offer||normal||p.price||0),lastMarket:$("prMarket").value.trim(),qualityRating:Number($("prQuality").value||0),photo,productNotes:$("prNotes").value.trim()});
+  if(!Array.isArray(p.priceHistory))p.priceHistory=[];
+  if(normal>0||offer>0){p.priceHistory.push({date:new Date().toLocaleString("it-IT"),category,market:p.lastMarket,normalPrice:normal,offerPrice:offer,price:money(offer||normal),packageSize:p.packageSize,packageUnit:p.packageUnit,qualityRating:p.qualityRating,source:"anagrafica"});}
+  if(!product)data.products.push(p);
+  if(previousName&&previousName!==name){
+   data.cats.forEach(c=>c.items.forEach(it=>{if(it.name===previousName)it.name=name}));
+   data.receipts.forEach(r=>r.items.forEach(it=>{if(it.name===previousName)it.name=name}));
+   data.history.forEach(h=>{if(h.name===previousName)h.name=name});
+  }
+  save();onDone();
+ };
 }
 
 function ensureProductPrice(name, category, normalPrice, offerPrice, market, dateLabel){
@@ -1008,7 +1036,7 @@ function importOldReceipt(){
 }
 
 function priceCatalog(){
- const makeRows=(q="")=>data.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).filter(p=>!q||p.name.toLowerCase().includes(q)||String(p.category||"").toLowerCase().includes(q)).map(p=>`<div class="item" data-price-item="${esc(p.name)}">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.brand?` · ${esc(p.brand)}`:""}${p.line?` · ${esc(p.line)}`:""}${p.variant?` · ${esc(p.variant)}`:""}${p.barcode?` · EAN ${esc(p.barcode)}`:""}${p.packageSize?` · ${p.packageSize}${esc(p.packageUnit||"")}`:""}${p.lastMarket?" · 🏪 "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div style="text-align:right"><b>${p.normalPrice?euro(p.normalPrice):"—"}</b>${p.offerPrice?`<div class="muted">🏷️ ${euro(p.offerPrice)}</div>`:""}</div></div>`).join("")||"<p>Nessun risultato.</p>";
+ const makeRows=(q="")=>data.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).filter(p=>!q||p.name.toLowerCase().includes(q)||String(p.category||"").toLowerCase().includes(q)).map(p=>`<div class="item" data-price-item="${esc(p.name)}">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.packageSize?` · ${p.packageSize}${esc(p.packageUnit||"")}`:""}${p.lastMarket?" · 🏪 "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div style="text-align:right"><b>${p.normalPrice?euro(p.normalPrice):"—"}</b>${p.offerPrice?`<div class="muted">🏷️ ${euro(p.offerPrice)}</div>`:""}</div></div>`).join("")||"<p>Nessun risultato.</p>";
  open(`<h2>💶 Catalogo prezzi</h2><p class="muted">Il prezzo originario è il riferimento principale. L'eventuale offerta viene conservata separatamente e non sostituisce il prezzo originario.</p><div class="actions"><button id="addManual">＋ Salva prezzo</button><button class="gray" id="importOld">🧾 Importa spesa precedente</button></div><input id="priceSearch" class="search" placeholder="Cerca prodotto" autocomplete="off"><div id="priceRows">${makeRows()}</div><button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
  const renderRows=()=>{const q=$("priceSearch").value.toLowerCase().trim();$("priceRows").innerHTML=makeRows(q)};
  $("priceSearch").oninput=renderRows;
@@ -1168,7 +1196,7 @@ function smartEntry(){
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V8.5</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V8.7</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
  $("close").onclick=close;
  $("reset").onclick=()=>{if(confirm("Azzera il budget generale e tutti i budget delle categorie? Gli scontrini e i prodotti NON verranno cancellati.")){data.budget=0;data.budgetConfigured=false;data.categoryBudgetsConfigured=false;data.cats.forEach(c=>{c.budget=0;c.selected=false});save();close();render()}};
  $("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
