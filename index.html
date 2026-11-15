@@ -78,6 +78,16 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 .receipt-topbar button{flex:1;min-height:44px;}
 .receipt-row-anchor{scroll-margin-top:76px;}
 
+
+/* V8.6.2 — visualizzazione ingrandita delle foto prodotto */
+.photo-preview img,.product-thumb{cursor:zoom-in;touch-action:manipulation}
+#photoLightbox{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.94);padding:calc(58px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));overflow:auto}
+#photoLightbox.open{display:flex}
+#photoLightbox img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;border-radius:8px;cursor:zoom-in;transition:transform .18s ease;transform-origin:center center}
+#photoLightbox img.zoomed{max-width:none;max-height:none;width:auto;height:auto;transform:scale(1.8);cursor:zoom-out}
+#photoLightbox .photo-close{position:fixed;top:calc(12px + env(safe-area-inset-top));right:14px;z-index:2;min-width:46px;min-height:46px;border-radius:50%;font-size:22px;background:#fff;color:#111}
+#photoLightbox .photo-caption{position:fixed;left:12px;right:64px;top:calc(20px + env(safe-area-inset-top));color:#fff;font-size:14px;font-weight:650;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
 </style>
 </head>
 <body>
@@ -98,6 +108,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 </div>
 
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div id="photoLightbox" aria-label="Foto prodotto ingrandita"><button type="button" class="photo-close" aria-label="Chiudi foto">×</button><div class="photo-caption"></div><img alt="Foto prodotto ingrandita"></div>
 
 <script>
 "use strict";
@@ -1145,6 +1156,23 @@ $("main").onclick=e=>{const a=e.target.closest("[data-add]"),n=e.target.closest(
 $("setBudget").onclick=setBudget;$("budgetCats").onclick=budgetCats;$("budgetCats2").onclick=budgetCats;$("settings").onclick=settings;$("finish").onclick=finishShopping;$("new").onclick=newShopping;
 $("listBtn").onclick=list;$("productsBtn").onclick=products;$("priceCatalogBtn").onclick=priceCatalog;$("pantryBtn").onclick=pantry;$("statsBtn").onclick=stats;$("historyBtn").onclick=history;$("marketBtn").onclick=supermarkets;$("searchBtn").onclick=search;$("catsBtn").onclick=cats;$("backupBtn").onclick=backup;
 $("smartBtn").onclick=smartEntry;
+
+// Apri le foto prodotto a schermo intero: vale per catalogo, lista, scontrino e anteprime.
+const photoLightbox=$("photoLightbox"),photoLightboxImg=photoLightbox.querySelector("img"),photoCaption=photoLightbox.querySelector(".photo-caption");
+function closePhotoLightbox(){photoLightbox.classList.remove("open");photoLightboxImg.classList.remove("zoomed");photoLightboxImg.removeAttribute("src");}
+document.addEventListener("click",e=>{
+ const thumb=e.target.closest(".product-thumb,.photo-preview img");
+ if(thumb){
+  e.preventDefault();e.stopPropagation();
+  const src=thumb.currentSrc||thumb.src;if(!src)return;
+  const item=thumb.closest(".item,.row,.stat");
+  const title=item?.querySelector("b,.name")?.textContent?.trim()||thumb.alt||"Foto prodotto";
+  photoCaption.textContent=title;photoLightboxImg.src=src;photoLightbox.classList.add("open");return;
+ }
+ if(e.target===photoLightbox||e.target===photoLightbox.querySelector(".photo-close"))closePhotoLightbox();
+});
+photoLightboxImg.addEventListener("click",()=>photoLightboxImg.classList.toggle("zoomed"));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&photoLightbox.classList.contains("open"))closePhotoLightbox()});
 render();
 </script>
 </body>
