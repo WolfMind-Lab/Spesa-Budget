@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V8.6</title>
+<title>Spesa — Budget V8.7</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -80,6 +80,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 
 /* V8.6.2 — visualizzazione ingrandita delle foto prodotto */
+/* V8.7 — anagrafica prodotto strutturata e riepilogo statistico prezzi */
 .photo-preview img,.product-thumb{cursor:zoom-in;touch-action:manipulation}
 #photoLightbox{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.94);padding:calc(58px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));overflow:auto}
 #photoLightbox.open{display:flex}
@@ -92,7 +93,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V8.6</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V8.7</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -112,7 +113,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=8.6;
+const KEY="spesaBudgetData",VERSION=8.7;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","❄️ Frigorifero",0,"Pasta fresca · Pasta sfoglia · Salumi · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
 ["🛒 SPESA ALIMENTARE","🥬 Ortofrutta",0,"Rucola · Insalata · Pomodori · Zucca · Carciofi · Fior di zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
@@ -622,7 +623,7 @@ function migrate(x){
      if(distinct) p.normalPrice=Number(distinct.normalPrice);
    }
    p.price=Number(p.normalPrice||p.offerPrice||p.price||0);
-   p.photo=p.photo||"";p.qualityRating=Number(p.qualityRating||0);
+   p.photo=p.photo||"";p.qualityRating=Number(p.qualityRating||0);p.brand=p.brand||"";p.line=p.line||"";p.variant=p.variant||"";p.barcode=p.barcode||"";p.packageSize=Number(p.packageSize||0);p.packageUnit=p.packageUnit||"";
  });
  // Ripara i vecchi cataloghi in cui un prezzo in offerta era finito anche nel campo prezzo originario.
  // Il prezzo originario resta sempre prioritario; l'offerta viene conservata separatamente.
@@ -922,12 +923,33 @@ function list(){
 }
 function products(restorePosition=false){
  const __panelY=restorePosition?$("sheet").scrollTop:0;
- const rows=data.products.map((p,i)=>`<div class="item">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div class="actions"><button class="gray small" data-edit-product="${i}">Modifica</button><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
+ const rows=data.products.map((p,i)=>`<div class="item">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.brand?` · ${esc(p.brand)}`:""}${p.line?` · ${esc(p.line)}`:""}${p.variant?` · ${esc(p.variant)}`:""}${p.barcode?` · EAN ${esc(p.barcode)}`:""}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div class="actions"><button class="gray small" data-edit-product="${i}">Modifica</button><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
  open(`<div class="panelbar"><button class="gray" id="closeTop">Chiudi ✕</button></div><h2>🏷️ Prodotti</h2><p class="muted">Il prezzo originario è il riferimento principale; il prezzo in offerta viene conservato separatamente quando disponibile. Puoi correggere qui la categoria proposta per gli acquisti futuri.</p>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
  $("close").onclick=close;$("closeTop").onclick=close;$('sheet').querySelectorAll('[data-del]').forEach(e=>e.onclick=()=>{data.products.splice(+e.dataset.del,1);save();products(true)});
- $('sheet').querySelectorAll('[data-edit-product]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.editProduct];const name=prompt("Nome prodotto",p.name);if(name===null)return;const cat=prompt("Categoria esatta (scegli tra quelle mostrate nell'app):\n"+data.cats.map(c=>c.name).join("\n"),p.category||"");if(cat===null)return;const target=data.cats.find(c=>c.name===cat.trim());if(!target){alert("Categoria non riconosciuta: nessuna modifica applicata.");return}p.name=name.trim()||p.name;p.category=target.name;(p.priceHistory||[]).forEach(h=>h.category=target.name);data.receipts.forEach(r=>r.items.forEach(it=>{if(String(it.name).toLowerCase()===String(p.name).toLowerCase())it.cat=target.name}));data.history.forEach(h=>{if(String(h.name).toLowerCase()===String(p.name).toLowerCase())h.category=target.name});save();products(true)});
+ $('sheet').querySelectorAll('[data-edit-product]').forEach(e=>e.onclick=()=>{
+   const p=data.products[+e.dataset.editProduct];
+   open(`<h2>✏️ Anagrafica prodotto</h2>
+   <label class="muted">Nome prodotto</label><input id="epName" value="${esc(p.name)}" style="width:100%">
+   <div class="two" style="margin-top:8px"><div><label class="muted">Marca</label><input id="epBrand" value="${esc(p.brand||"")}" placeholder="Es. Barilla" style="width:100%"></div><div><label class="muted">Linea</label><input id="epLine" value="${esc(p.line||"")}" placeholder="Es. Integrale" style="width:100%"></div></div>
+   <div class="two" style="margin-top:8px"><div><label class="muted">Variante</label><input id="epVariant" value="${esc(p.variant||"")}" placeholder="Es. penne rigate" style="width:100%"></div><div><label class="muted">Codice a barre / EAN</label><input id="epBarcode" value="${esc(p.barcode||"")}" inputmode="numeric" style="width:100%"></div></div>
+   <label class="muted" style="display:block;margin-top:8px">Categoria</label><select id="epCat" style="width:100%">${data.cats.map(c=>`<option value="${esc(c.name)}" ${c.name===(p.category||"")?"selected":""}>${esc(c.name)}</option>`).join("")}</select>
+   <div class="two" style="margin-top:8px"><div><label class="muted">Formato confezione</label><input id="epSize" type="number" min="0" step=".001" value="${Number(p.packageSize||0)||""}" style="width:100%"></div><div><label class="muted">Unità</label><select id="epUnit" style="width:100%"><option value="" ${!p.packageUnit?"selected":""}>Non specificata</option>${["g","kg","ml","L","pz"].map(u=>`<option ${p.packageUnit===u?"selected":""}>${u}</option>`).join("")}</select></div></div>
+   <button id="epSave" style="width:100%;margin-top:12px">Salva anagrafica</button><button class="gray" id="epCancel" style="width:100%;margin-top:6px">Annulla</button>`);
+   $("epCancel").onclick=()=>products(true);
+   $("epSave").onclick=()=>{
+     const oldName=p.name,newName=$("epName").value.trim();if(!newName){alert("Inserisci il nome del prodotto.");return}
+     const target=data.cats.find(c=>c.name===$("epCat").value);if(!target){alert("Categoria non valida.");return}
+     if(data.products.some(q=>q!==p&&q.name.toLowerCase()===newName.toLowerCase())){alert("Esiste già un prodotto con questo nome. Usa un nome distinto per non unire articoli diversi.");return}
+     p.name=newName;p.brand=$("epBrand").value.trim();p.line=$("epLine").value.trim();p.variant=$("epVariant").value.trim();p.barcode=$("epBarcode").value.trim();p.category=target.name;p.packageSize=Math.max(0,Number($("epSize").value)||0);p.packageUnit=$("epUnit").value;
+     (p.priceHistory||[]).forEach(h=>{h.category=target.name});
+     data.receipts.forEach(r=>r.items.forEach(it=>{if(String(it.name).toLowerCase()===oldName.toLowerCase()){it.name=newName;it.cat=target.name;it.packageSize=p.packageSize||it.packageSize;it.packageUnit=p.packageUnit||it.packageUnit}}));
+     data.cats.forEach(c=>c.items.forEach(it=>{if(String(it.name).toLowerCase()===oldName.toLowerCase())it.name=newName}));
+     data.history.forEach(h=>{if(String(h.name).toLowerCase()===oldName.toLowerCase()){h.name=newName;h.category=target.name}});
+     save();products(true);
+   };
+ });
  if(restorePosition)requestAnimationFrame(()=>{$("sheet").scrollTop=__panelY});
- $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.ph];const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} · ${esc(h.market||"")}</small></span><span>Orig. ${euro(h.normalPrice||h.price)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}</div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" onclick="products()">Indietro</button>`) });
+ $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.ph];const hist=(p.priceHistory||[]).map(h=>Number(h.offerPrice||h.normalPrice||h.price||0)).filter(v=>v>0);const min=hist.length?Math.min(...hist):0,max=hist.length?Math.max(...hist):0,avg=hist.length?hist.reduce((a,b)=>a+b,0)/hist.length:0;const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} · ${esc(h.market||"")}</small></span><span>Orig. ${euro(h.normalPrice||h.price)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}<br><b>Rilevazioni:</b> ${hist.length}<br><b>Minimo:</b> ${min?euro(min):"—"} · <b>Massimo:</b> ${max?euro(max):"—"}<br><b>Media semplice:</b> ${avg?euro(avg):"—"}</div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" id="backProducts">Indietro</button>`);$("backProducts").onclick=()=>products(true) });
 }
 
 function ensureProductPrice(name, category, normalPrice, offerPrice, market, dateLabel){
@@ -986,7 +1008,7 @@ function importOldReceipt(){
 }
 
 function priceCatalog(){
- const makeRows=(q="")=>data.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).filter(p=>!q||p.name.toLowerCase().includes(q)||String(p.category||"").toLowerCase().includes(q)).map(p=>`<div class="item" data-price-item="${esc(p.name)}">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.packageSize?` · ${p.packageSize}${esc(p.packageUnit||"")}`:""}${p.lastMarket?" · 🏪 "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div style="text-align:right"><b>${p.normalPrice?euro(p.normalPrice):"—"}</b>${p.offerPrice?`<div class="muted">🏷️ ${euro(p.offerPrice)}</div>`:""}</div></div>`).join("")||"<p>Nessun risultato.</p>";
+ const makeRows=(q="")=>data.products.slice().sort((a,b)=>a.name.localeCompare(b.name,"it")).filter(p=>!q||p.name.toLowerCase().includes(q)||String(p.category||"").toLowerCase().includes(q)).map(p=>`<div class="item" data-price-item="${esc(p.name)}">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.brand?` · ${esc(p.brand)}`:""}${p.line?` · ${esc(p.line)}`:""}${p.variant?` · ${esc(p.variant)}`:""}${p.barcode?` · EAN ${esc(p.barcode)}`:""}${p.packageSize?` · ${p.packageSize}${esc(p.packageUnit||"")}`:""}${p.lastMarket?" · 🏪 "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div style="text-align:right"><b>${p.normalPrice?euro(p.normalPrice):"—"}</b>${p.offerPrice?`<div class="muted">🏷️ ${euro(p.offerPrice)}</div>`:""}</div></div>`).join("")||"<p>Nessun risultato.</p>";
  open(`<h2>💶 Catalogo prezzi</h2><p class="muted">Il prezzo originario è il riferimento principale. L'eventuale offerta viene conservata separatamente e non sostituisce il prezzo originario.</p><div class="actions"><button id="addManual">＋ Salva prezzo</button><button class="gray" id="importOld">🧾 Importa spesa precedente</button></div><input id="priceSearch" class="search" placeholder="Cerca prodotto" autocomplete="off"><div id="priceRows">${makeRows()}</div><button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
  const renderRows=()=>{const q=$("priceSearch").value.toLowerCase().trim();$("priceRows").innerHTML=makeRows(q)};
  $("priceSearch").oninput=renderRows;
