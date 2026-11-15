@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V7.6</title>
+<title>Spesa — Budget V7.7</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -21,11 +21,44 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 .offerbox{background:#fff8df;border:1px solid #f0df9a;padding:9px;border-radius:10px;margin-top:8px}.qtygrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:5px}.qtygrid button{min-height:34px}.qtygrid button.sel{background:#111;color:#fff}.qtygrid button:not(.sel){background:#e9e9ee;color:#222}
 @media (max-width:520px){.top{flex-wrap:wrap}.top label{width:auto}.top input{flex:1;min-width:86px}.top button{flex:1;min-width:0}.top .new{margin-left:0;flex-basis:100%}.sheet{padding-left:12px;padding-right:12px}.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.two input,.two select{font-size:16px}.stat{min-width:0;overflow:hidden}.actions>button{max-width:100%}}\n@media (max-width:420px){.receipt-meta{grid-template-columns:1fr!important}.receipt-meta>div{min-width:0}.receipt-meta input,.receipt-meta select{width:100%;max-width:100%;min-width:0}.receipt-row-fields{grid-template-columns:minmax(0,1fr)!important}.sheet .two>*{min-width:0}.sheet input,.sheet select{max-width:100%}}
 .product-picker{position:relative;margin-top:4px}.product-picker input{width:100%;margin-top:0}.product-options{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:80;background:#fff;border:1px solid #d7d7dd;border-radius:12px;box-shadow:0 8px 24px #0002;max-height:230px;overflow:auto}.product-options.open{display:block}.product-option{display:block;width:100%;text-align:left;background:#fff;color:#111;border:0;border-bottom:1px solid #eee;border-radius:0;min-height:44px;padding:10px 12px;font-size:15px;font-weight:600}.product-option:last-child{border-bottom:0}.product-option:active{background:#eee}.product-empty{padding:11px 12px;color:#777;font-size:13px}
+
+/* V7.7 — spaziatura e layout mobile dei pannelli */
+.modal{height:var(--vvh,100dvh);bottom:auto;overscroll-behavior:none}
+.sheet{width:100%;max-width:680px;max-height:calc(var(--vvh,100dvh) - 10px);padding:20px 16px calc(24px + env(safe-area-inset-bottom));gap:0;scroll-padding-top:18px;scroll-padding-bottom:28px}
+.sheet>*{min-width:0;max-width:100%}
+.sheet h2{line-height:1.25;margin:0 0 14px}
+.sheet p{line-height:1.45;margin:0 0 14px}
+.sheet .actions{gap:8px;margin:12px 0;align-items:stretch}
+.sheet .actions>button{flex:1 1 180px;min-width:0;white-space:normal;line-height:1.25;padding:10px 12px}
+#irRows{display:flex;flex-direction:column;gap:14px;margin:14px 0!important}
+#irRows .stat{margin:0;padding:14px;border-radius:14px;display:flex;flex-direction:column;gap:11px;background:#fafafa}
+#irRows .product-picker{margin:0;width:100%}
+#irRows .product-picker input{width:100%;min-height:48px}
+#irRows .receipt-row-fields{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;margin:0!important}
+#irRows .receipt-row-fields input,#irRows .receipt-row-fields select{width:100%;min-width:0;min-height:46px}
+#irRows [data-ir-del]{align-self:flex-start;margin-top:0!important;min-height:38px}
+.receipt-meta{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:14px 0!important}
+.receipt-meta>div{display:flex;flex-direction:column;gap:6px;min-width:0}
+.receipt-meta label{font-size:13px;font-weight:650;color:#666}
+.receipt-meta input,.receipt-meta select{width:100%;min-height:48px}
+#irAdd,#irSave,#irRows+#irAdd,#irSave+#close{min-height:48px;margin-top:10px!important}
+.sheet input,.sheet select{min-width:0;max-width:100%;}
+.product-options{max-height:min(32vh,220px);}
+@media(max-width:520px){
+ .sheet{border-radius:20px 20px 0 0;padding:18px 14px calc(26px + env(safe-area-inset-bottom))}
+ .sheet .actions{display:grid;grid-template-columns:1fr;gap:9px}
+ .sheet .actions>button{width:100%;min-height:46px}
+ #irRows .stat{padding:13px;gap:12px}
+}
+@media(min-width:521px){
+ .receipt-meta{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #irRows .receipt-row-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V7.6</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V7.7</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -572,12 +605,12 @@ function spent(){return data.cats.reduce((a,c)=>a+catSum(c),0)}
 function selectedCatBudget(){return data.cats.filter(c=>c.selected!==false).reduce((a,c)=>a+Number(c.budget||0),0)}
 function syncModalViewport(){
  const vv=window.visualViewport;
- if(vv){document.documentElement.style.setProperty("--vvh",`${Math.max(240,vv.height)}px`);$("modal").style.top=`${Math.max(0,vv.offsetTop)}px`;}
+ if(vv){document.documentElement.style.setProperty("--vvh",`${Math.max(240,vv.height)}px`);$("modal").style.top=`${Math.max(0,vv.offsetTop)}px`;$("modal").style.height=`${Math.max(240,vv.height)}px`; }
 }
 function open(html){$("sheet").innerHTML=html;syncModalViewport();$("modal").classList.add("open");}
 function close(){$("modal").classList.remove("open");$("modal").style.top="0px";}
 if(window.visualViewport){window.visualViewport.addEventListener("resize",syncModalViewport);window.visualViewport.addEventListener("scroll",syncModalViewport);}
-$("sheet").addEventListener("focusin",e=>{if(e.target.matches("input,select,textarea")){setTimeout(()=>{const sheet=$("sheet"),el=e.target;const r=el.getBoundingClientRect(),s=sheet.getBoundingClientRect();if(r.bottom>s.bottom-20||r.top<s.top+10)el.scrollIntoView({block:"center",behavior:"smooth"});},180);}});
+$("sheet").addEventListener("focusin",e=>{if(e.target.matches("input,select,textarea")){setTimeout(()=>{const sheet=$("sheet"),el=e.target;const r=el.getBoundingClientRect(),s=sheet.getBoundingClientRect();if(r.bottom>s.bottom-24){sheet.scrollTo({top:sheet.scrollTop+(r.bottom-s.bottom)+32,behavior:"smooth"});}else if(r.top<s.top+12){sheet.scrollTo({top:Math.max(0,sheet.scrollTop-(s.top-r.top)+24),behavior:"smooth"});}},180);}});
 $("modal").onclick=e=>{if(e.target===$("modal"))close()};
 
 function render(){
@@ -935,11 +968,11 @@ function cats(){
 
 function backup(){
  open(`<h2>💾 Backup</h2><p class="muted">Salva budget, categorie, acquisti, lista, prodotti, offerte, supermercati, dispensa e storico.</p><button id="export" style="width:100%">⬇️ Esporta backup</button><button class="gray" id="imp" style="width:100%;margin-top:6px">⬆️ Importa backup</button><input id="file" type="file" accept=".json,application/json" hidden><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
- $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v7.6-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
+ $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v7.7-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V7.6</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V7.7</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
  $("close").onclick=close;
  $("reset").onclick=()=>{if(confirm("Azzera il budget generale e tutti i budget delle categorie? Gli scontrini e i prodotti NON verranno cancellati.")){data.budget=0;data.budgetConfigured=false;data.categoryBudgetsConfigured=false;data.cats.forEach(c=>{c.budget=0;c.selected=false});save();close();render()}};
  $("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
