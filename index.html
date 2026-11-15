@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V8.1</title>
+<title>Spesa — Budget V8.2</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -55,18 +55,20 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
  #irRows .receipt-row-fields{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
-/* V8.1 — editor scontrino: azioni sempre raggiungibili anche con tastiera iOS */
+/* V8.2 — editor scontrino: i comandi restano nel flusso e non coprono i campi */
 .sheet{max-height:calc(var(--vvh,100dvh) - 6px);min-height:0;overscroll-behavior-y:contain;scrollbar-gutter:stable;}
-.sheet:has(.editor-actions){padding-bottom:calc(12px + env(safe-area-inset-bottom));}
-.editor-actions{position:sticky;bottom:0;z-index:95;background:rgba(255,255,255,.98);backdrop-filter:blur(12px);padding:10px 0 calc(10px + env(safe-area-inset-bottom));margin:12px -16px 0;border-top:1px solid #e8e8ec;box-shadow:0 -8px 18px #0000000a;}
-.editor-actions button{min-height:44px;}
+.sheet:has(.editor-actions){display:block;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(22px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(24px + env(safe-area-inset-bottom));}
+.editor-actions{position:static;inset:auto;z-index:auto;display:flex;flex-direction:column;gap:8px;background:#fff;backdrop-filter:none;padding:14px 0 calc(18px + env(safe-area-inset-bottom));margin:16px 0 0;border-top:1px solid #e8e8ec;box-shadow:none;}
+.editor-actions button{display:block;width:100%;min-height:48px;margin:0!important;flex:0 0 auto;white-space:normal;}
 #riVat{width:100%;min-height:46px;}
-@media(max-width:520px){.editor-actions{margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px;bottom:0;}}
+.sheet:has(.editor-actions) input:focus,.sheet:has(.editor-actions) select:focus{scroll-margin-block:18px;}
+@media(max-width:520px){.editor-actions{margin-left:0;margin-right:0;padding-left:0;padding-right:0;gap:9px;}}
+
 </style>
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V8.1</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V8.2</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -625,7 +627,7 @@ function syncModalViewport(){
 function open(html){$("sheet").innerHTML=html;syncModalViewport();$("modal").classList.add("open");}
 function close(){$("modal").classList.remove("open");$("modal").style.top="0px";}
 if(window.visualViewport){window.visualViewport.addEventListener("resize",syncModalViewport);window.visualViewport.addEventListener("scroll",syncModalViewport);}
-$("sheet").addEventListener("focusin",e=>{if(e.target.matches("input,select,textarea")){setTimeout(()=>{const sheet=$("sheet"),el=e.target;const r=el.getBoundingClientRect(),s=sheet.getBoundingClientRect();if(r.bottom>s.bottom-24){sheet.scrollTo({top:sheet.scrollTop+(r.bottom-s.bottom)+32,behavior:"smooth"});}else if(r.top<s.top+12){sheet.scrollTo({top:Math.max(0,sheet.scrollTop-(s.top-r.top)+24),behavior:"smooth"});}},180);}});
+$("sheet").addEventListener("focusin",e=>{if(e.target.matches("input,select,textarea")){const el=e.target;[250,500].forEach(delay=>setTimeout(()=>{if(!el.isConnected)return;const sheet=$("sheet"),r=el.getBoundingClientRect(),s=sheet.getBoundingClientRect();let delta=0;if(r.bottom>s.bottom-28)delta=r.bottom-s.bottom+36;else if(r.top<s.top+16)delta=r.top-s.top-20;if(delta)sheet.scrollTo({top:Math.max(0,sheet.scrollTop+delta),behavior:"auto"});},delay));}});
 $("modal").onclick=e=>{if(e.target===$("modal"))close()};
 
 function render(){
