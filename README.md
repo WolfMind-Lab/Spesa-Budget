@@ -1,30 +1,13 @@
-# Spesa — Budget — versione V8.8
+# Spesa — Budget V8.9
 
-Contenuto:
-- Budget totale e per categoria
-- Inserimento rapido prezzo + quantità
-- Anteprima senza registrazione finché non premi `+`
-- Lista della spesa
-- Archivio prodotti e storico prezzi
-- Catalogo prezzi con salvataggio manuale e importazione di spese precedenti
-- Prezzo originario prioritario e offerte conservate separatamente
-- Selezione dei prodotti già presenti durante l'inserimento
-- Supermercati e prezzi per supermercato
-- Dispensa con quantità e soglia minima
-- Statistiche
-- Storico movimenti
-- Ricerca
-- Backup / ripristino
-- Categorie personalizzabili
-- Salvataggio permanente in localStorage
-- Migrazione della chiave `spesaBudgetData`
-- PWA installabile e cache offline
+Versione completa aggiornata a partire dal progetto ricevuto dall'utente.
 
-Per pubblicarla: caricare `index.html`, `manifest.webmanifest` e `sw.js` nello stesso percorso su un hosting HTTPS.
+## Novità V8.9
+- Gestione selettiva delle anagrafiche: seleziona/deseleziona tutte, elimina selezionate dopo conferma, esporta selezionate senza trascinare lo storico prezzi.
+- Gestione selettiva del catalogo prezzi: seleziona/deseleziona, elimina selezionati dopo conferma, esporta selezionati scegliendo se includere lo storico prezzi.
+- Importazione selettiva dei soli scontrini da un backup JSON, senza importare catalogo, anagrafiche o storico prezzi.
+- Barra di chiusura unica e sempre raggiungibile in alto nelle finestre: gli eventuali pulsanti di chiusura duplicati vengono nascosti, mantenendo i riferimenti interni per compatibilità.
+- Conservata la chiave locale `spesaBudgetData` e il file `index.backup.html` originale.
 
-## V8.8 — gestione dello storico prezzi
-- Modifica delle singole registrazioni dello storico (data, categoria, punto vendita e prezzi).
-- Eliminazione di una singola registrazione senza toccare gli scontrini.
-- Individuazione e rimozione, solo su conferma, delle copie perfettamente identiche nello storico.
-- La modifica di un'anagrafica esistente non genera automaticamente una nuova osservazione di prezzo; la creazione di una nuova anagrafica con prezzo iniziale continua a registrare la prima osservazione.
-- Chiave localStorage invariata: `spesaBudgetData`.
+## Note
+L'esportazione delle anagrafiche e quella del catalogo prezzi sono file separati. L'esportazione del catalogo consente di includere o escludere lo storico. L'importazione dei soli scontrini non modifica i prodotti o gli storici già presenti.
