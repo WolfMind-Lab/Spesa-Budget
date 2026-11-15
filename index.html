@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V8.3</title>
+<title>Spesa — Budget V8.4</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -72,7 +72,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V8.3</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V8.4</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -91,10 +91,10 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=8.1;
+const KEY="spesaBudgetData",VERSION=8.4;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","❄️ Frigorifero",0,"Pasta fresca · Pasta sfoglia · Salumi · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
-["🛒 SPESA ALIMENTARE","🥦 Verdura",0,"Rucola · Insalata · Pomodori · Zucca · Carciofi · Fior di zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
+["🛒 SPESA ALIMENTARE","🥬 Ortofrutta",0,"Rucola · Insalata · Pomodori · Zucca · Carciofi · Fior di zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
 ["🛒 SPESA ALIMENTARE","🍎 Frutta",0,"Mele · Banane · Arance · Pere · Uva · Kiwi · Fragole · Pesche · Melone"],
 ["🛒 SPESA ALIMENTARE","☕ Caffè e tè",0,"Caffè · Tè · Camomilla · Tisane · Infusi"],
 ["🛒 SPESA ALIMENTARE","🥛 Latte, yogurt e formaggi",0,"Latte · Yogurt · Mozzarella · Formaggio · Provola · Panna · Burro"],
@@ -243,7 +243,7 @@ const PRODUCT_CATALOG={
 "Panna",
 "Burro"
 ],
-"🥦 Verdura":[
+"🥬 Ortofrutta":[
 "Patate",
 "Pomodori",
 "Pomodorini",
@@ -554,6 +554,10 @@ function migrate(x){
  x.budgetConfigured=hadBudgetConfigured?x.budgetConfigured:false;
  x.categoryBudgetsConfigured=typeof x.categoryBudgetsConfigured === "boolean" ? x.categoryBudgetsConfigured : Boolean(x.budgetConfigured && Array.isArray(x.cats) && x.cats.some(c=>c.selected===true && Number(c.budget||0)>0));
  if(!hadBudgetConfigured){x.budget=0;x.budgetConfigured=false;x.categoryBudgetsConfigured=false;}
+ // Rinomina la vecchia categoria Verdura in Ortofrutta senza perdere budget, prodotti o storico.
+ x.cats.forEach(c=>{if(c.name==="🥦 Verdura"||c.name==="Verdura")c.name="🥬 Ortofrutta";});
+ const renameCategoryRefs=(value)=>{if(!value||typeof value!=="object")return;if(Array.isArray(value)){value.forEach(renameCategoryRefs);return;}Object.keys(value).forEach(k=>{if((k==="category"||k==="name")&&(value[k]==="🥦 Verdura"||value[k]==="Verdura"))value[k]="🥬 Ortofrutta";else if(value[k]&&typeof value[k]==="object")renameCategoryRefs(value[k]);});};
+ renameCategoryRefs(x);
  // Aggiunge automaticamente le nuove categorie alle installazioni precedenti.
  DEFAULTS.forEach(d=>{
    if(!x.cats.some(c=>c.name===d[1])){
@@ -683,7 +687,7 @@ function inferCategory(name){
   ["🐟 Pesce",/salmone|merluzzo|pesce|frutti di mare|misto mare|gamberetti/],
   ["🥛 Latte, yogurt e formaggi",/latte|yogurt|mozzarella|formaggio|provola|burro|panna/],
   ["🍪 Snack e dolci",/patatine(?!\s+surgelate)|popcorn|cioccolato|caramell|merend|dolci|gelato/],
-  ["🥦 Verdura",/rucola|insalata|pomodor|zucca|peperon|zucchin|melanzan|patat[ei]?\b|cipolla|aglio|prezzemolo|sedano|carciofi|fior di zucca|funghi|finocchi|cetrioli|radicchio|asparagi|fagiolini/],
+  ["🥬 Ortofrutta",/rucola|insalata|pomodor|zucca|peperon|zucchin|melanzan|patat[ei]?\b|cipolla|aglio|prezzemolo|sedano|carciofi|fior di zucca|funghi|finocchi|cetrioli|radicchio|asparagi|fagiolini/],
   ["🍎 Frutta",/mela|banana|arancia|pera|uva|kiwi|fragola|pesca|albicocca|anguria|melone/],
   ["🍞 Pane e prodotti da forno",/pane|pan bauletto|piadina|focaccia|panino|cracker|grissini|fette biscottate/],
   ["☕ Caffè e tè",/caffe|\bte\b|camomilla|tisane/],
@@ -819,12 +823,11 @@ function setBudget(){
 
 function list(){
  const allCatalog=[];
- Object.entries(PRODUCT_CATALOG||{}).forEach(([cat,items])=>items.forEach(name=>allCatalog.push({name,category:cat}))); 
+ Object.entries(PRODUCT_CATALOG||{}).forEach(([cat,items])=>items.forEach(name=>allCatalog.push({name,category:cat})));
  data.products.forEach(p=>allCatalog.push({name:p.name,category:p.category||"Prodotti salvati"}));
  const unique=[]; const seen=new Set();
  allCatalog.forEach(x=>{const k=x.name.trim().toLowerCase();if(k&&!seen.has(k)){seen.add(k);unique.push(x)}});
  unique.sort((a,b)=>a.name.localeCompare(b.name,'it'));
- const rows=data.shoppingList.map((x,i)=>`<div class="check"><input type="checkbox" data-ch="${i}" ${x.done?"checked":""}><div class="grow ${x.done?"done":""}"><b>${esc(x.name)}</b><div class="muted">Quantità: ${x.qty||1}${x.category?` · ${esc(x.category)}`:""}${x.purchasedPrice?` · acquistato a ${euro(x.purchasedPrice)}`:""}</div></div><button class="gray small" data-rm="${i}">×</button></div>`).join("")||"<p>Lista vuota.</p>";
  open(`<h2>📝 Lista della spesa</h2>
  <label class="muted">Scegli un prodotto già presente nell'app oppure scrivine uno nuovo</label>
  <div class="product-picker" style="margin-top:4px">
@@ -833,8 +836,17 @@ function list(){
  </div>
  <div class="line" style="margin-top:7px"><select id="lq">${Array.from({length:10},(_,n)=>`<option>${n+1}</option>`).join("")}</select><button class="gray" id="clearListProduct">✕ Pulisci</button></div>
  <div class="muted" style="margin-top:5px">${unique.length} prodotti disponibili. Tocca la barra per vedere l'elenco completo.</div>
- <button id="addL" style="width:100%;margin-top:7px">＋ Aggiungi alla lista</button>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
- const input=$("ln"), options=$("listProductOptions");
+ <button id="addL" style="width:100%;margin-top:7px">＋ Aggiungi alla lista</button>
+ <div style="margin-top:16px"><label class="muted" for="listSearch">Cerca tra i prodotti già inseriti nella lista</label><input id="listSearch" class="search" placeholder="🔎 Cerca nella lista della spesa" autocomplete="off"></div>
+ <div id="shoppingRows"></div><button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
+ const input=$("ln"), options=$("listProductOptions"), listSearch=$("listSearch"), rowsEl=$("shoppingRows");
+ const renderRows=()=>{
+   const q=(listSearch.value||"").trim().toLocaleLowerCase("it");
+   const matches=data.shoppingList.map((x,i)=>({x,i})).filter(({x})=>!q||String(x.name||"").toLocaleLowerCase("it").includes(q)||String(x.category||"").toLocaleLowerCase("it").includes(q));
+   rowsEl.innerHTML=matches.length?matches.map(({x,i})=>`<div class="check"><input type="checkbox" data-ch="${i}" ${x.done?"checked":""}><div class="grow ${x.done?"done":""}"><b>${esc(x.name)}</b><div class="muted">Quantità: ${x.qty||1}${x.category?` · ${esc(x.category)}`:""}${x.purchasedPrice?` · acquistato a ${euro(x.purchasedPrice)}`:""}</div></div><button class="gray small" data-rm="${i}">×</button></div>`).join(""):data.shoppingList.length?"<p class=\"muted\">Nessun prodotto corrisponde alla ricerca.</p>":"<p>Lista vuota.</p>";
+   rowsEl.querySelectorAll("[data-ch]").forEach(e=>e.onchange=()=>{data.shoppingList[+e.dataset.ch].done=e.checked;save();renderRows()});
+   rowsEl.querySelectorAll("[data-rm]").forEach(e=>e.onclick=()=>{data.shoppingList.splice(+e.dataset.rm,1);save();renderRows()});
+ };
  const renderOptions=()=>{
    const q=input.value.trim().toLowerCase();
    const filtered=unique.filter(x=>!q||x.name.toLowerCase().includes(q)||x.category.toLowerCase().includes(q)).slice(0,150);
@@ -845,12 +857,11 @@ function list(){
  input.oninput=()=>{renderOptions();options.classList.add('open')};
  input.onkeydown=e=>{if(e.key==='Escape')options.classList.remove('open');else if(e.key==='Enter'){const first=options.querySelector('[data-list-product]');if(first){e.preventDefault();input.value=first.dataset.listProduct;input.dataset.category=first.dataset.listCategory;options.classList.remove('open')}}};
  $("clearListProduct").onclick=()=>{input.value="";delete input.dataset.category;input.focus();renderOptions();options.classList.add('open')};
+ listSearch.oninput=renderRows;
  $("close").onclick=close;
- $("addL").onclick=()=>{const n=input.value.trim(),q=Number($("lq").value);if(!n){alert("Scegli un prodotto dall'elenco oppure scrivine uno nuovo.");return}if(!data.shoppingList.some(x=>x.name.toLowerCase()===n.toLowerCase()&&!x.done))data.shoppingList.push({name:n,qty:q,category:input.dataset.category||"",done:false});save();list()};
- $("sheet").querySelectorAll("[data-ch]").forEach(e=>e.onchange=()=>{data.shoppingList[+e.dataset.ch].done=e.checked;save();list()});
- $("sheet").querySelectorAll("[data-rm]").forEach(e=>e.onclick=()=>{data.shoppingList.splice(+e.dataset.rm,1);save();list()});
+ $("addL").onclick=()=>{const n=input.value.trim(),q=Number($("lq").value);if(!n){alert("Scegli un prodotto dall'elenco oppure scrivine uno nuovo.");return}if(!data.shoppingList.some(x=>x.name.toLowerCase()===n.toLowerCase()&&!x.done))data.shoppingList.push({name:n,qty:q,category:input.dataset.category||"",done:false});save();renderRows();input.value="";delete input.dataset.category;options.classList.remove("open")};
+ renderRows();
 }
-
 function products(restorePosition=false){
  const __panelY=restorePosition?$("sheet").scrollTop:0;
  const rows=data.products.map((p,i)=>`<div class="item"><div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div></div><div class="actions"><button class="gray small" data-edit-product="${i}">Modifica</button><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
@@ -1073,7 +1084,7 @@ function smartEntry(){
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V8.0</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V8.4</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
  $("close").onclick=close;
  $("reset").onclick=()=>{if(confirm("Azzera il budget generale e tutti i budget delle categorie? Gli scontrini e i prodotti NON verranno cancellati.")){data.budget=0;data.budgetConfigured=false;data.categoryBudgetsConfigured=false;data.cats.forEach(c=>{c.budget=0;c.selected=false});save();close();render()}};
  $("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
