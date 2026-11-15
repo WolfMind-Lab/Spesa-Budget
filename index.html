@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V8.2</title>
+<title>Spesa — Budget V8.3</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -63,12 +63,16 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 #riVat{width:100%;min-height:46px;}
 .sheet:has(.editor-actions) input:focus,.sheet:has(.editor-actions) select:focus{scroll-margin-block:18px;}
 @media(max-width:520px){.editor-actions{margin-left:0;margin-right:0;padding-left:0;padding-right:0;gap:9px;}}
+/* V8.3 — navigazione persistente e ripristino posizione */
+.receipt-topbar{position:sticky;top:-20px;z-index:95;display:flex;gap:8px;background:#fff;padding:4px 0 10px;margin:-4px 0 12px;border-bottom:1px solid #eee;}
+.receipt-topbar button{flex:1;min-height:44px;}
+.receipt-row-anchor{scroll-margin-top:76px;}
 
 </style>
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V8.2</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V8.3</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -631,6 +635,7 @@ $("sheet").addEventListener("focusin",e=>{if(e.target.matches("input,select,text
 $("modal").onclick=e=>{if(e.target===$("modal"))close()};
 
 function render(){
+ const __pageY=window.scrollY||document.documentElement.scrollTop||0;
  $("budget").value=data.budgetConfigured?data.budget:"";
  $("bTot").textContent=data.budgetConfigured?euro(data.budget):"Non impostato";
  $("sTot").textContent=euro(spent());
@@ -653,6 +658,7 @@ function render(){
  });
  $("main").innerHTML=out;
  data.cats.forEach((c,i)=>{const q=$("q"+i),p=$("p"+i);if(q)q.onchange=()=>{if(q.value==="custom"){let n=Math.max(11,parseInt(prompt("Quantità personalizzata","11"),10)||11);q.innerHTML=Array.from({length:10},(_,z)=>`<option value="${z+1}">${z+1}</option>`).join("")+`<option value="${n}">${n}</option>`;q.value=n}};if(p)p.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();openPurchase(i,quickEntry(i))}}})
+ requestAnimationFrame(()=>{window.scrollTo(0,__pageY);setTimeout(()=>window.scrollTo(0,__pageY),100)});
 }
 
 // Legge sempre prezzo e quantità della riga: prima della correzione questi valori
@@ -845,11 +851,13 @@ function list(){
  $("sheet").querySelectorAll("[data-rm]").forEach(e=>e.onclick=()=>{data.shoppingList.splice(+e.dataset.rm,1);save();list()});
 }
 
-function products(){
+function products(restorePosition=false){
+ const __panelY=restorePosition?$("sheet").scrollTop:0;
  const rows=data.products.map((p,i)=>`<div class="item"><div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div></div><div class="actions"><button class="gray small" data-edit-product="${i}">Modifica</button><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
  open(`<div class="panelbar"><button class="gray" id="closeTop">Chiudi ✕</button></div><h2>🏷️ Prodotti</h2><p class="muted">Il prezzo originario è il riferimento principale; il prezzo in offerta viene conservato separatamente quando disponibile. Puoi correggere qui la categoria proposta per gli acquisti futuri.</p>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
- $("close").onclick=close;$("closeTop").onclick=close;$('sheet').querySelectorAll('[data-del]').forEach(e=>e.onclick=()=>{data.products.splice(+e.dataset.del,1);save();products()});
- $('sheet').querySelectorAll('[data-edit-product]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.editProduct];const name=prompt("Nome prodotto",p.name);if(name===null)return;const cat=prompt("Categoria esatta (scegli tra quelle mostrate nell'app):\n"+data.cats.map(c=>c.name).join("\n"),p.category||"");if(cat===null)return;const target=data.cats.find(c=>c.name===cat.trim());if(!target){alert("Categoria non riconosciuta: nessuna modifica applicata.");return}p.name=name.trim()||p.name;p.category=target.name;(p.priceHistory||[]).forEach(h=>h.category=target.name);data.receipts.forEach(r=>r.items.forEach(it=>{if(String(it.name).toLowerCase()===String(p.name).toLowerCase())it.cat=target.name}));data.history.forEach(h=>{if(String(h.name).toLowerCase()===String(p.name).toLowerCase())h.category=target.name});save();products()});
+ $("close").onclick=close;$("closeTop").onclick=close;$('sheet').querySelectorAll('[data-del]').forEach(e=>e.onclick=()=>{data.products.splice(+e.dataset.del,1);save();products(true)});
+ $('sheet').querySelectorAll('[data-edit-product]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.editProduct];const name=prompt("Nome prodotto",p.name);if(name===null)return;const cat=prompt("Categoria esatta (scegli tra quelle mostrate nell'app):\n"+data.cats.map(c=>c.name).join("\n"),p.category||"");if(cat===null)return;const target=data.cats.find(c=>c.name===cat.trim());if(!target){alert("Categoria non riconosciuta: nessuna modifica applicata.");return}p.name=name.trim()||p.name;p.category=target.name;(p.priceHistory||[]).forEach(h=>h.category=target.name);data.receipts.forEach(r=>r.items.forEach(it=>{if(String(it.name).toLowerCase()===String(p.name).toLowerCase())it.cat=target.name}));data.history.forEach(h=>{if(String(h.name).toLowerCase()===String(p.name).toLowerCase())h.category=target.name});save();products(true)});
+ if(restorePosition)requestAnimationFrame(()=>{$("sheet").scrollTop=__panelY});
  $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.ph];const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} · ${esc(h.market||"")}</small></span><span>Orig. ${euro(h.normalPrice||h.price)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}</div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" onclick="products()">Indietro</button>`) });
 }
 
@@ -969,29 +977,30 @@ function editReceiptItem(receiptId,itemId){
  const preview=()=>{const price=val("riOffer")>0?val("riOffer"):val("riPrice")||val("riNormal"),total=money(price*Math.max(1,val("riQty"))*(val("riMeasure")>0?val("riMeasure"):1)),rate=val("riVat"),vat=rate>0?money(total*rate/(100+rate)):0;$("riPreview").innerHTML=`Totale riga: <b>${euro(total)}</b>${rate>0?`<br>IVA inclusa (${rate}%): ${euro(vat)}`:"<br>IVA non specificata"}`};
  ["riQty","riPrice","riMeasure","riNormal","riOffer","riVat"].forEach(id=>$(id).oninput=preview);preview();
  $("riName").addEventListener("input",()=>{const guessed=inferCategory($("riName").value);if(guessed && categories.includes(guessed))$("riCat").value=guessed;});
- $("riCancel").onclick=()=>{if(it._draft){r.items=r.items.filter(x=>x.id!==itemId);save()}receiptView(receiptId)};
- $("riSave").onclick=()=>{const name=$("riName").value.trim();if(!name){alert("Inserisci il nome del prodotto.");return}const qty=Math.max(1,Math.floor(val("riQty")||1)),normal=val("riNormal"),offer=val("riOffer"),price=offer>0?offer:(val("riPrice")||normal);if(price<=0){alert("Inserisci un prezzo valido.");return}Object.assign(it,{name,cat:$("riCat").value,qty,price:money(price),normalPrice:money(normal||price),offerPrice:money(offer),isOffer:offer>0,measureQty:val("riMeasure"),measureUnit:$("riUnit").value,packageSize:val("riPack"),packageUnit:$("riPackUnit").value,vatRate:val("riVat")});delete it._draft;syncReceiptItem(r,it);updateReceiptTotals(r);save();receiptView(receiptId)};
+ $("riCancel").onclick=()=>{if(it._draft){r.items=r.items.filter(x=>x.id!==itemId);save()}receiptView(receiptId,itemId)};
+ $("riSave").onclick=()=>{const name=$("riName").value.trim();if(!name){alert("Inserisci il nome del prodotto.");return}const qty=Math.max(1,Math.floor(val("riQty")||1)),normal=val("riNormal"),offer=val("riOffer"),price=offer>0?offer:(val("riPrice")||normal);if(price<=0){alert("Inserisci un prezzo valido.");return}Object.assign(it,{name,cat:$("riCat").value,qty,price:money(price),normalPrice:money(normal||price),offerPrice:money(offer),isOffer:offer>0,measureQty:val("riMeasure"),measureUnit:$("riUnit").value,packageSize:val("riPack"),packageUnit:$("riPackUnit").value,vatRate:val("riVat")});delete it._draft;syncReceiptItem(r,it);updateReceiptTotals(r);save();receiptView(receiptId,itemId)};
  $("riSplit").onclick=()=>{const copy={...it,id:uid(),name:"Nuovo prodotto da distinguere",qty:1};r.items.push(copy);syncReceiptItem(r,copy);updateReceiptTotals(r);save();editReceiptItem(receiptId,copy.id)};
- $("riDelete").onclick=()=>{if(!confirm(`Eliminare la riga "${it.name}" dallo scontrino?`))return;r.items=r.items.filter(x=>x.id!==itemId);data.history=data.history.filter(h=>h.itemId!==itemId);updateReceiptTotals(r);save();receiptView(receiptId)};
+ $("riDelete").onclick=()=>{if(!confirm(`Eliminare la riga "${it.name}" dallo scontrino?`))return;const oldIndex=r.items.findIndex(x=>x.id===itemId);r.items=r.items.filter(x=>x.id!==itemId);data.history=data.history.filter(h=>h.itemId!==itemId);updateReceiptTotals(r);save();receiptView(receiptId,r.items[Math.min(oldIndex,r.items.length-1)]?.id||null)};
 }
 function addReceiptItem(receiptId){
  const r=data.receipts.find(x=>x.id===receiptId);if(!r)return;
  const cat=data.cats[0]?.name||"";const it={id:uid(),name:"",cat,qty:1,price:0,normalPrice:0,offerPrice:0,measureQty:0,measureUnit:"",packageSize:0,packageUnit:"",market:"",_draft:true};r.items.push(it);save();editReceiptItem(receiptId,it.id);
 }
-function receiptView(id){
+function receiptView(id,focusItemId=null){
  const r=data.receipts.find(x=>x.id===id);if(!r)return history();
  r.items.forEach(x=>{if(!x.id)x.id=uid()});
- const rows=r.items.map(x=>`<div class="item"><span><b>${esc(x.name||"Prodotto")}</b><br><small>${esc(x.cat||"")} · ${x.qty} × ${euro(x.price)}${x.measureQty?` · ${x.measureQty} ${esc(x.measureUnit||"")}`:""}${x.packageSize?` · confezione ${x.packageSize}${esc(x.packageUnit||"")}`:""}${x.isOffer?" · 🏷️ offerta":""}${Number(x.vatRate)>0?` · IVA ${Number(x.vatRate)}%`:""}${x.market?" · 🏪 "+esc(x.market):""}</small></span><span><b>${euro(itemTotal(x))}</b><br><button class="gray small" data-edit-receipt-item="${esc(x.id)}">Modifica</button></span></div>`).join("");
- open(`<h2>🧾 ${esc(r.label||"Scontrino")}</h2><div class="stat"><b>ID:</b> ${esc(r.identifier||r.id)}<br><b>Data:</b> ${new Date(r.date).toLocaleString("it-IT")}<br><b>Supermercato:</b> ${r.markets?.length?esc(r.markets.join(", ")):"Non specificato"}<br><b>Righe:</b> ${r.items.length} · <b>Pezzi:</b> ${Number(r.pieceCount||r.items.reduce((a,x)=>a+Number(x.qty||1),0))}<br><b>Totale app (IVA inclusa nei prezzi):</b> ${euro(r.total)}<br><b>${vatLabel(r)}</b><br><b>Totale cartaceo:</b> ${r.paperTotal?euro(r.paperTotal):"Non inserito"}<br>${r.paperTotal?`<b>Differenza:</b> <span class="${Math.abs(r.total-r.paperTotal)<.01?"green":"red"}">${euro(r.total-r.paperTotal)}</span>`:""}</div><div class="actions"><button id="editReceipt">✏️ Modifica nome e dati</button><button class="gray" id="compareReceipt">🧾 Confronta cartaceo</button><button class="gray" id="addReceiptItem">＋ Aggiungi riga</button></div>${rows||"<p>Nessuna riga nello scontrino.</p>"}<button id="delReceipt" class="danger" style="width:100%;margin-top:8px">🗑️ Elimina questo scontrino</button><button class="gray" id="back" style="width:100%;margin-top:6px">Indietro</button>`);
- $("back").onclick=history;$("addReceiptItem").onclick=()=>addReceiptItem(id);$("editReceipt").onclick=()=>{const label=prompt("Nome dello scontrino",r.label||"");if(label===null)return;const idn=prompt("Numero identificativo",r.identifier||r.id);if(idn===null)return;const pc=prompt("Numero pezzi sullo scontrino",String(r.pieceCount||0));if(pc===null)return;const paper=prompt("Totale cartaceo (lascia vuoto se non disponibile)",r.paperTotal?String(r.paperTotal):"");if(paper===null)return;r.label=label.trim()||r.label;r.identifier=idn.trim()||r.identifier;r.pieceCount=Math.max(0,Number(pc)||0);r.paperTotal=Number(String(paper||0).replace(",","."))||0;updateReceiptTotals(r);save();receiptView(id)};
+ const rows=r.items.map(x=>`<div class="item receipt-row-anchor" data-receipt-row="${esc(x.id)}"><span><b>${esc(x.name||"Prodotto")}</b><br><small>${esc(x.cat||"")} · ${x.qty} × ${euro(x.price)}${x.measureQty?` · ${x.measureQty} ${esc(x.measureUnit||"")}`:""}${x.packageSize?` · confezione ${x.packageSize}${esc(x.packageUnit||"")}`:""}${x.isOffer?" · 🏷️ offerta":""}${Number(x.vatRate)>0?` · IVA ${Number(x.vatRate)}%`:""}${x.market?" · 🏪 "+esc(x.market):""}</small></span><span><b>${euro(itemTotal(x))}</b><br><button class="gray small" data-edit-receipt-item="${esc(x.id)}">Modifica</button></span></div>`).join("");
+ open(`<div class="receipt-topbar"><button class="gray" id="receiptBack">← Scontrini</button><button class="gray" id="receiptClose">Chiudi ✕</button></div><h2>🧾 ${esc(r.label||"Scontrino")}</h2><div class="stat"><b>ID:</b> ${esc(r.identifier||r.id)}<br><b>Data:</b> ${new Date(r.date).toLocaleString("it-IT")}<br><b>Supermercato:</b> ${r.markets?.length?esc(r.markets.join(", ")):"Non specificato"}<br><b>Righe:</b> ${r.items.length} · <b>Pezzi:</b> ${Number(r.pieceCount||r.items.reduce((a,x)=>a+Number(x.qty||1),0))}<br><b>Totale app (IVA inclusa nei prezzi):</b> ${euro(r.total)}<br><b>${vatLabel(r)}</b><br><b>Totale cartaceo:</b> ${r.paperTotal?euro(r.paperTotal):"Non inserito"}<br>${r.paperTotal?`<b>Differenza:</b> <span class="${Math.abs(r.total-r.paperTotal)<.01?"green":"red"}">${euro(r.total-r.paperTotal)}</span>`:""}</div><div class="actions"><button id="editReceipt">✏️ Modifica nome e dati</button><button class="gray" id="compareReceipt">🧾 Confronta cartaceo</button><button class="gray" id="addReceiptItem">＋ Aggiungi riga</button></div>${rows||"<p>Nessuna riga nello scontrino.</p>"}<button id="delReceipt" class="danger" style="width:100%;margin-top:8px">🗑️ Elimina questo scontrino</button><button class="gray" id="back" style="width:100%;margin-top:6px">Indietro</button>`);
+ $("receiptBack").onclick=history;$("receiptClose").onclick=close;$("back").onclick=history;$("addReceiptItem").onclick=()=>addReceiptItem(id);$("editReceipt").onclick=()=>{const label=prompt("Nome dello scontrino",r.label||"");if(label===null)return;const idn=prompt("Numero identificativo",r.identifier||r.id);if(idn===null)return;const pc=prompt("Numero pezzi sullo scontrino",String(r.pieceCount||0));if(pc===null)return;const paper=prompt("Totale cartaceo (lascia vuoto se non disponibile)",r.paperTotal?String(r.paperTotal):"");if(paper===null)return;r.label=label.trim()||r.label;r.identifier=idn.trim()||r.identifier;r.pieceCount=Math.max(0,Number(pc)||0);r.paperTotal=Number(String(paper||0).replace(",","."))||0;updateReceiptTotals(r);save();receiptView(id)};
  $("compareReceipt").onclick=()=>{const paper=prompt("Inserisci il totale dello scontrino cartaceo",r.paperTotal?String(r.paperTotal):"");if(paper===null)return;r.paperTotal=Number(String(paper).replace(",","."))||0;updateReceiptTotals(r);save();receiptView(id)};
  $("sheet").querySelectorAll("[data-edit-receipt-item]").forEach(b=>b.onclick=()=>editReceiptItem(id,b.dataset.editReceiptItem));
+ if(focusItemId){requestAnimationFrame(()=>{const target=[...$("sheet").querySelectorAll("[data-receipt-row]")].find(el=>el.dataset.receiptRow===focusItemId);if(target)target.scrollIntoView({block:"center",behavior:"auto"})})}
  $("delReceipt").onclick=()=>{if(confirm("Eliminare definitivamente questo scontrino?")){data.receipts=data.receipts.filter(x=>x.id!==id);save();history()}};
 }
 
 function history(){
  const rows=data.receipts.slice().reverse().map(r=>`<div class="item"><div class="grow"><b>🧾 ${esc(r.label||new Date(r.date).toLocaleString("it-IT"))}</b><div class="muted">${r.items.length} righe · ${Number(r.pieceCount||r.items.reduce((a,x)=>a+Number(x.qty||1),0))} pezzi · ID ${esc(r.identifier||"")}${r.markets?.length?" · 🏪 "+esc(r.markets.join(", ")):""} · Totale ${euro(r.total)}</div></div><button class="gray small" data-r="${r.id}">Apri</button></div>`).join("")||"<p>Nessuno scontrino salvato.</p>";
- open(`<h2>📋 Scontrini salvati</h2>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`); $("close").onclick=close;
+ open(`<div class="receipt-topbar"><button class="gray" id="historyClose">Chiudi ✕</button></div><h2>📋 Scontrini salvati</h2>${rows}`); $("historyClose").onclick=close;
  $("sheet").querySelectorAll("[data-r]").forEach(e=>e.onclick=()=>receiptView(e.dataset.r));
 }
 
