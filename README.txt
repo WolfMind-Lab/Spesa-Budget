@@ -10,3 +10,5 @@ Questa versione introduce un archivio dati permanente.
 - Permette di ripristinare l'ultimo backup automatico dalle Impostazioni
 - "Azzera" ripristina solo i budget iniziali e non cancella spese/dati
 - "Elimina tutti i dati" è l'unica azione che cancella realmente l'archivio
+
+V9.0: estesa la sezione Lavatrice con tipologia, formati, foto, EAN, prezzi e scorte. La chiave dati locale resta invariata.

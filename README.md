@@ -11,3 +11,10 @@ Versione completa aggiornata a partire dal progetto ricevuto dall'utente.
 
 ## Note
 L'esportazione delle anagrafiche e quella del catalogo prezzi sono file separati. L'esportazione del catalogo consente di includere o escludere lo storico. L'importazione dei soli scontrini non modifica i prodotti o gli storici già presenti.
+
+
+## V9.0 — Estensione sezione Lavatrice
+- Schede Lavatrice con tipologia, formati multipli, quantità/unità, numero lavaggi, EAN, fotografia per formato, prezzo normale/offerta e scorta per formato.
+- Scorta generale per anagrafica con soglia minima e comandi rapidi +/− nel catalogo prodotti.
+- Migrazione compatibile: i campi nuovi vengono inizializzati senza rimuovere quelli esistenti.
+- La chiave localStorage resta `spesaBudgetData`.
