@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V7.4</title>
+<title>Spesa — Budget V7.5</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -19,12 +19,12 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 .section-head{padding:11px 12px;background:#f2f2f7;border-bottom:1px solid #e7e7eb;font-weight:800;font-size:14px}.row{padding:10px;border-bottom:1px solid #eee}.rowtop{display:flex;gap:6px;align-items:flex-start}.name{flex:1;font-weight:750;font-size:14px}.note{font-size:10px;color:#888;font-weight:400;line-height:1.3;margin-top:3px}.nums{font-size:10px;color:#666;white-space:nowrap}.entry{display:flex;gap:5px;margin-top:7px}.qty{width:65px;text-align:center}.price{flex:1;min-width:0}.plus{width:48px;font-size:20px}.hist{font-size:10px;color:#888;margin-top:5px;overflow-x:auto;white-space:nowrap}.alert{display:inline-block;margin-top:6px;padding:5px 7px;border-radius:8px;background:#fff1f1;color:#b42318;font-size:10px}.badge{display:inline-block;padding:2px 6px;border-radius:999px;background:#eee;color:#666;font-size:10px;font-weight:600}
 .footer{display:flex;justify-content:space-between;align-items:center;font-size:12px}.muted{color:#777;font-size:11px}.modal{position:fixed;inset:0;background:#0006;display:none;align-items:flex-end;justify-content:center;z-index:50}.modal.open{display:flex}.sheet{background:#fff;width:100%;max-width:680px;max-height:90vh;overflow:auto;overflow-x:hidden;border-radius:20px 20px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom))}.sheet h2{font-size:19px;margin:0 0 12px}.line{display:flex;gap:7px;margin:7px 0}.line>*{flex:1;min-width:0}.item{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #eee;font-size:13px}.actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.small{min-height:30px;padding:0 8px;font-size:11px}.stat{border:1px solid #eee;border-radius:10px;padding:10px;margin:7px 0;background:#fafafa}.check{display:flex;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #eee}.check input{width:20px;height:20px}.grow{flex:1}.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}.two>*{min-width:0}.two input,.two select{width:100%;min-width:0;max-width:100%}.successbox{background:#d1e7dd;padding:9px;border-radius:10px}.dangerbox{background:#f8d7da;padding:9px;border-radius:10px}.search{width:100%;margin-bottom:8px}.done{text-decoration:line-through;color:#999}
 .offerbox{background:#fff8df;border:1px solid #f0df9a;padding:9px;border-radius:10px;margin-top:8px}.qtygrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:5px}.qtygrid button{min-height:34px}.qtygrid button.sel{background:#111;color:#fff}.qtygrid button:not(.sel){background:#e9e9ee;color:#222}
-@media (max-width:420px){.sheet{padding-left:12px;padding-right:12px}.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.two input,.two select{font-size:16px}.stat{min-width:0;overflow:hidden}}\n.product-picker{position:relative;margin-top:4px}.product-picker input{width:100%;margin-top:0}.product-options{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:80;background:#fff;border:1px solid #d7d7dd;border-radius:12px;box-shadow:0 8px 24px #0002;max-height:230px;overflow:auto}.product-options.open{display:block}.product-option{display:block;width:100%;text-align:left;background:#fff;color:#111;border:0;border-bottom:1px solid #eee;border-radius:0;min-height:44px;padding:10px 12px;font-size:15px;font-weight:600}.product-option:last-child{border-bottom:0}.product-option:active{background:#eee}.product-empty{padding:11px 12px;color:#777;font-size:13px}
+@media (max-width:520px){.top{flex-wrap:wrap}.top label{width:auto}.top input{flex:1;min-width:86px}.top button{flex:1;min-width:0}.top .new{margin-left:0;flex-basis:100%}.sheet{padding-left:12px;padding-right:12px}.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.two input,.two select{font-size:16px}.stat{min-width:0;overflow:hidden}.actions>button{max-width:100%}}\n.product-picker{position:relative;margin-top:4px}.product-picker input{width:100%;margin-top:0}.product-options{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:80;background:#fff;border:1px solid #d7d7dd;border-radius:12px;box-shadow:0 8px 24px #0002;max-height:230px;overflow:auto}.product-options.open{display:block}.product-option{display:block;width:100%;text-align:left;background:#fff;color:#111;border:0;border-bottom:1px solid #eee;border-radius:0;min-height:44px;padding:10px 12px;font-size:15px;font-weight:600}.product-option:last-child{border-bottom:0}.product-option:active{background:#eee}.product-empty{padding:11px 12px;color:#777;font-size:13px}
 </style>
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V7.4</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V7.5</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -43,30 +43,30 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=7.4;
+const KEY="spesaBudgetData",VERSION=7.5;
 const DEFAULTS=[
-["🛒 SPESA ALIMENTARE","❄️ Frigorifero",17.5,"Pasta fresca · Pasta sfoglia · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
-["🛒 SPESA ALIMENTARE","🥛 Latte, yogurt e formaggi",15,"Latte · Yogurt · Mozzarella · Formaggio · Provola · Burro"],
-["🛒 SPESA ALIMENTARE","🥦 Verdura",15,"Rucola · Insalata · Pomodori · Zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
-["🛒 SPESA ALIMENTARE","🍎 Frutta",0,"Mele · Banane · Arance · Pere · Uva"],
-["🛒 SPESA ALIMENTARE","🍞 Pane e prodotti da forno",8,"Pane · Pan bauletto · Piadine · Focaccia · Panini · Crackers · Pangrattato"],
-["🛒 SPESA ALIMENTARE","☕ Caffè e tè",4,"Caffè · Tè · Camomilla · Tisane"],
-["🛒 SPESA ALIMENTARE","☕ Colazione",5,"Biscotti · Cereali · Marmellata · Cacao · Miele"],
-["🛒 SPESA ALIMENTARE","🥤 Bevande",5,"Acqua · Succhi · Bibite · Tè freddo"],
-["🛒 SPESA ALIMENTARE","🍪 Snack e dolci",7,"Patatine · Crackers · Cioccolato · Merendine · Dolci"],
-["🛒 SPESA ALIMENTARE","🍝 Pasta, riso, cereali e farine",20,"Penne · Rigatoni · Tubettini · Pasta mista · Riso · Farina · Semola · Zucchero · Pangrattato"],
-["🛒 SPESA ALIMENTARE","🥫 Conserve e legumi",15,"Passata · Pelati · Concentrato · Salsa · Tonno · Sgombro · Simmenthal · Ceci · Fagioli · Lenticchie · Olive · Mais · Acciughe · Capperi"],
-["🛒 SPESA ALIMENTARE","🥩 Carne",45,"Salsiccia · Fettine · Macinato · Pollo · Alette · Cosciotti · Petto · Carne a pezzi"],
-["🛒 SPESA ALIMENTARE","🐟 Pesce",5,"Pesce fresco · Salmone · Merluzzo · Frutti di mare · Misto mare"],
-["🛒 SPESA ALIMENTARE","🫒 Olio, condimenti e spezie",6,"Olio · Olio di semi · Aceto · Glassa balsamica · Pepe · Spezie · Dadi · Salse"],
-["🏠 CASA & PULIZIA","🍽️ Tavola",5,"Scottex · Piatti · Bicchieri · Stuzzicadenti · Detersivo piatti · Spugne"],
-["🏠 CASA & PULIZIA","🏠 Casa",15,"Detersivo pavimenti · Detersivo bagno · Pezze per lavare a terra · Carta igienica · Buste immondizia · Rullino pelucchi"],
-["🧴 IGIENE PERSONALE","🧴 Igiene personale",0,"Deodorante · Stick ascelle · Cotton fioc · Shampoo · Bagnoschiuma · Sapone mani · Dentifricio · Spazzolino · Assorbenti · Detergenti personali"],
-["🛒 SPESA ALIMENTARE","🧊 Surgelati",17.5,"Funghi champignon · Misto mare · Contorno verdure · Minestrone · Piselli · Spinaci · Patatine · Pesce · Pizza"],
+["🛒 SPESA ALIMENTARE","❄️ Frigorifero",0,"Pasta fresca · Pasta sfoglia · Salumi · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
+["🛒 SPESA ALIMENTARE","🥦 Verdura",0,"Rucola · Insalata · Pomodori · Zucca · Carciofi · Fior di zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
+["🛒 SPESA ALIMENTARE","🍎 Frutta",0,"Mele · Banane · Arance · Pere · Uva · Kiwi · Fragole · Pesche · Melone"],
+["🛒 SPESA ALIMENTARE","☕ Caffè e tè",0,"Caffè · Tè · Camomilla · Tisane · Infusi"],
+["🛒 SPESA ALIMENTARE","🥛 Latte, yogurt e formaggi",0,"Latte · Yogurt · Mozzarella · Formaggio · Provola · Panna · Burro"],
+["🛒 SPESA ALIMENTARE","🥤 Bevande",0,"Acqua · Succhi · Bibite · Tè freddo · Bevande · Avena"],
+["🛒 SPESA ALIMENTARE","🍪 Snack e dolci",0,"Patatine · Crackers · Cioccolato · Merendine · Dolci · Gelati · Snack salati"],
+["🛒 SPESA ALIMENTARE","☕ Colazione",0,"Biscotti · Cereali · Marmellata · Cacao · Miele · Zucchero"],
+["🛒 SPESA ALIMENTARE","🍝 Pasta, riso, cereali e farine",0,"Penne · Rigatoni · Tubettini · Pasta mista · Riso · Farina · Semola · Zucchero · Sale · Bicarbonato · Pangrattato"],
+["🛒 SPESA ALIMENTARE","🥫 Conserve e legumi",0,"Passata · Pelati · Concentrato · Salsa · Tonno · Sgombro · Simmenthal · Ceci · Fagioli · Lenticchie · Piselli · Fagiolini · Olive · Mais · Acciughe · Capperi"],
+["🛒 SPESA ALIMENTARE","🍞 Pane e prodotti da forno",0,"Pane · Pan bauletto · Piadine · Focaccia · Panini · Crackers · Pangrattato"],
+["🛒 SPESA ALIMENTARE","🥩 Carne",0,"Salsiccia · Fettine · Macinato · Pollo · Alette · Cosciotti · Petto · Carne a pezzi · Hamburger"],
+["🫒 SPESA ALIMENTARE","🫒 Olio, condimenti e spezie",0,"Olio · Olio di semi · Olio di oliva · Aceto · Aceto balsamico · Glassa balsamica · Sale · Pepe · Spezie · Dadi · Salse"],
+["🏠 CASA & PULIZIA","🍽️ Tavola",0,"Scottex · Piatti · Bicchieri · Stuzzicadenti · Detersivo piatti · Spugne"],
+["🏠 CASA & PULIZIA","🏠 Casa",0,"Detersivo pavimenti · Detersivo bagno · Pezze per lavare a terra · Carta igienica · Buste immondizia · Rullino pelucchi"],
+["🧴 IGIENE PERSONALE","🧴 Igiene personale",0,"Deodorante · Stick ascelle · Cotton fioc · Shampoo · Bagnoschiuma · Sapone mani · Dentifricio · Spazzolino · Assorbenti"],
+["🛒 SPESA ALIMENTARE","🧊 Surgelati",0,"Funghi champignon surgelati · Misto mare surgelato · Contorno verdure surgelato · Minestrone surgelato · Piselli surgelati · Spinaci surgelati · Patatine surgelate · Pesce surgelato · Pizza surgelata"],
+["🛒 SPESA ALIMENTARE","🐟 Pesce",0,"Pesce fresco · Salmone · Merluzzo · Frutti di mare · Misto mare · Gamberetti"],
 ["🐱 GATTI","🥣 Croccantini",0,"Croccantini · Croccantini sterilizzati · Croccantini specifici"],
 ["🐱 GATTI","🥫 Umido",0,"Bustine · Lattine · Vaschette · Multipack · Paté · Bocconcini · Gelatina"],
 ["🐱 GATTI","🪣 Lettiera",0,"Lettiera agglomerante · Silicio · Vegetale · Non agglomerante"],
-["🏠 CASA & PULIZIA","👕 Lavatrice",0,"Detersivo lavatrice · Ammorbidente"]
+["🏠 CASA & PULIZIA","👕 Lavatrice",0,"Detersivo lavatrice · Ammorbidente · Smacchiatore · Igienizzante"]
 ];
 
 const PRODUCT_CATALOG={
@@ -601,19 +601,20 @@ function render(){
 function inferCategory(name){
  const q=String(name||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
  const rules=[
+  ["🧊 Surgelati",/surgelat|misto mare surgelato|funghi champignon surgelati|minestrone surgelato|verdure surgelate|piselli surgelati|spinaci surgelati|patatine surgelate|pesce surgelato|pizza surgelata/],
+  ["❄️ Frigorifero",/pasta fresca|pasta sfoglia fresca|prosciutto crudo|prosciutto cotto|mortadella|salumi|guanciale|pancetta|wurstel|w[uü]rstel/],
   ["🍝 Pasta, riso, cereali e farine",/pasta|penne|rigatoni|tubett|riso|farina|semola|zucchero|bicarbonato|pangrattato|cous cous|farro|orzo/],
-  ["🥫 Conserve e legumi",/tonno|sgombro|simmenthal|ceci|fagioli|lenticchie|piselli|mais|passata|pelati|concentrato|salsa|olive|acciughe|capperi/],
   ["🥩 Carne",/salsiccia|fettine|macinato|pollo|alette|cosciotti|petto|carne|manzo|tacchino/],
   ["🐟 Pesce",/salmone|merluzzo|pesce|frutti di mare|misto mare|gamberetti/],
   ["🥛 Latte, yogurt e formaggi",/latte|yogurt|mozzarella|formaggio|provola|burro|panna/],
-  ["🥦 Verdura",/rucola|insalata|pomodor|zucca|peperon|zucchin|melanzan|patat|cipolla|aglio|prezzemolo|sedano|carciofi|fior di zucca|funghi|finocchi|cetrioli|radicchio|asparagi/],
+  ["🥦 Verdura",/rucola|insalata|pomodor|zucca|peperon|zucchin|melanzan|patat|cipolla|aglio|prezzemolo|sedano|carciofi|fior di zucca|funghi|finocchi|cetrioli|radicchio|asparagi|fagiolini/],
   ["🍎 Frutta",/mela|banana|arancia|pera|uva|kiwi|fragola|pesca|albicocca|anguria|melone/],
   ["🍞 Pane e prodotti da forno",/pane|pan bauletto|piadina|focaccia|panino|cracker|grissini|fette biscottate/],
-  ["☕ Caffè e tè",/caffe|te|camomilla|tisane/],
+  ["☕ Caffè e tè",/caffe|\bte\b|camomilla|tisane/],
   ["🍪 Snack e dolci",/patatine|popcorn|cioccolato|caramell|merend|dolci|gelato/],
   ["🥤 Bevande",/acqua|bibita|coca|pepsi|succo|succhi|bevanda|avena/],
   ["🫒 Olio, condimenti e spezie",/olio|aceto|glassa|pepe|spezie|dadi|maionese|ketchup|senape/],
-  ["🧊 Surgelati",/surgelat|misto mare|funghi champignon surgelati|minestrone surgelato|verdure surgelate/],
+  ["🥫 Conserve e legumi",/tonno|sgombro|simmenthal|ceci|fagioli|lenticchie|piselli|mais|passata|pelati|concentrato|salsa|olive|acciughe|capperi/],
   ["🍽️ Tavola",/stuzzicadenti|piatti|bicchieri|scottex|tovaglioli|spugne|detersivo piatti/],
   ["🏠 Casa",/detersivo pavimenti|detersivo bagno|pezze|panni per pavimenti|carta igienica|buste|rullino|levapelucchi/],
   ["🧴 Igiene personale",/deodorante|stick ascelle|shampoo|bagnoschiuma|sapone|cotton fioc|assorbenti|dentifricio|spazzolino/],
@@ -822,16 +823,18 @@ function manualPrice(){
 
 function importOldReceipt(){
  let rows=[{name:"",category:"",qty:1,normal:0,offer:0}];
- const render=()=>{const html=rows.map((r,i)=>`<div class="stat"><div class="two"><input data-ir-name="${i}" placeholder="Prodotto" value="${esc(r.name)}"><input data-ir-qty="${i}" type="number" min="1" step="1" value="${r.qty||1}" placeholder="Qtà"></div><div class="two" style="margin-top:6px"><input data-ir-normal="${i}" type="number" min="0" step=".01" value="${r.normal||""}" placeholder="Prezzo originario €"><input data-ir-offer="${i}" type="number" min="0" step=".01" value="${r.offer||""}" placeholder="Offerta €"></div><select data-ir-cat="${i}" style="width:100%;margin-top:6px"><option value="">Categoria automatica</option>${data.cats.map(c=>`<option value="${esc(c.name)}" ${r.category===c.name?'selected':''}>${esc(c.name)}</option>`).join("")}</select><button class="gray small" data-ir-del="${i}" style="margin-top:6px">🗑️ Rimuovi riga</button></div>`).join("");
+ const render=()=>{const html=rows.map((r,i)=>`<div class="stat"><div class="product-picker"><input data-ir-name="${i}" placeholder="Scegli o scrivi il prodotto" value="${esc(r.name)}" autocomplete="off" autocapitalize="sentences" spellcheck="false"><div class="product-options" data-ir-options="${i}"></div></div><div class="two" style="margin-top:6px"><input data-ir-qty="${i}" type="number" min="1" step="1" value="${r.qty||1}" placeholder="Qtà"><select data-ir-cat="${i}"><option value="">Categoria automatica</option>${data.cats.map(c=>`<option value="${esc(c.name)}" ${r.category===c.name?'selected':''}>${esc(c.name)}</option>`).join("")}</select></div><div class="two" style="margin-top:6px"><input data-ir-normal="${i}" type="number" min="0" step=".01" value="${r.normal||""}" placeholder="Prezzo originario €"><input data-ir-offer="${i}" type="number" min="0" step=".01" value="${r.offer||""}" placeholder="Offerta €"></div><button class="gray small" data-ir-del="${i}" style="margin-top:6px">🗑️ Rimuovi riga</button></div>`).join("");
  $("irRows").innerHTML=html;
- $("irRows").querySelectorAll('[data-ir-name]').forEach(e=>e.oninput=()=>rows[+e.dataset.irName].name=e.value);
+ const allNames=[...new Set([...Object.values(PRODUCT_CATALOG).flat(),...data.products.map(p=>p.name)])].sort((a,b)=>a.localeCompare(b,"it"));
+ $("irRows").querySelectorAll('[data-ir-name]').forEach(e=>{const i=+e.dataset.irName;const opts=e.parentElement.querySelector('.product-options');const draw=()=>{const q=e.value.trim().toLowerCase();const f=allNames.filter(n=>!q||n.toLowerCase().includes(q));opts.innerHTML=f.slice(0,80).map(n=>`<button type="button" class="product-option" data-ir-pick="${i}" data-name="${esc(n)}">${esc(n)}</button>`).join("")||`<div class="product-empty">Puoi usare un nuovo prodotto.</div>`;opts.classList.add("open")};e.onfocus=draw;e.oninput=()=>{rows[i].name=e.value;draw()};opts.querySelectorAll('[data-ir-pick]').forEach(()=>{});});
+ $("irRows").querySelectorAll('[data-ir-options]').forEach(opts=>opts.querySelectorAll('[data-ir-pick]').forEach(b=>b.onclick=()=>{const i=+b.dataset.irPick;const name=b.dataset.name;rows[i].name=name;const p=data.products.find(x=>x.name.toLowerCase()===name.toLowerCase());if(p)rows[i].category=p.category||rows[i].category;else rows[i].category=inferCategory(name)||rows[i].category;render();}));
  $("irRows").querySelectorAll('[data-ir-qty]').forEach(e=>e.oninput=()=>rows[+e.dataset.irQty].qty=Math.max(1,Number(e.value)||1));
  $("irRows").querySelectorAll('[data-ir-normal]').forEach(e=>e.oninput=()=>rows[+e.dataset.irNormal].normal=Number(e.value)||0);
  $("irRows").querySelectorAll('[data-ir-offer]').forEach(e=>e.oninput=()=>rows[+e.dataset.irOffer].offer=Number(e.value)||0);
  $("irRows").querySelectorAll('[data-ir-cat]').forEach(e=>e.onchange=()=>rows[+e.dataset.irCat].category=e.value);
  $("irRows").querySelectorAll('[data-ir-del]').forEach(e=>e.onclick=()=>{rows.splice(+e.dataset.irDel,1);if(!rows.length)rows.push({name:"",category:"",qty:1,normal:0,offer:0});render()});
  };
- open(`<h2>🧾 Importa spesa precedente</h2><p class="muted">Inserisci una vecchia spesa recuperata da uno scontrino. Non verrà aggiunta alla spesa corrente: entrerà nello storico e aggiornerà il catalogo prezzi.</p><div class="two"><div><label class="muted">Data</label><input id="irDate" type="date" value="${new Date().toISOString().slice(0,10)}" style="width:100%"></div><div><label class="muted">Supermercato</label><select id="irMarket" style="width:100%"><option value="">Non specificato</option>${data.supermarkets.map(m=>`<option>${esc(m)}</option>`).join("")}</select></div></div><div id="irRows" style="margin-top:8px"></div><button class="gray" id="irAdd" style="width:100%">＋ Aggiungi prodotto</button><button id="irSave" style="width:100%;margin-top:7px">🧾 Salva spesa precedente</button><button class="gray" id="close" style="width:100%;margin-top:6px">Annulla</button>`);
+ open(`<h2>🧾 Importa spesa precedente</h2><p class="muted">Inserisci una vecchia spesa recuperata da uno scontrino. Non verrà aggiunta alla spesa corrente: entrerà nello storico e aggiornerà il catalogo prezzi.</p><div class="two"><div><label class="muted">Data</label><input id="irDate" type="date" value="${new Date().toISOString().slice(0,10)}" style="width:100%;max-width:100%"></div><div><label class="muted">Supermercato</label><select id="irMarket" style="width:100%;max-width:100%"><option value="">Non specificato</option>${data.supermarkets.map(m=>`<option>${esc(m)}</option>`).join("")}</select></div></div><div id="irRows" style="margin-top:8px"></div><button class="gray" id="irAdd" style="width:100%">＋ Aggiungi prodotto</button><button id="irSave" style="width:100%;margin-top:7px">🧾 Salva spesa precedente</button><button class="gray" id="close" style="width:100%;margin-top:6px">Annulla</button>`);
  render();
  $("irAdd").onclick=()=>{rows.push({name:"",category:"",qty:1,normal:0,offer:0});render()};
  $("irSave").onclick=()=>{const valid=rows.filter(r=>r.name.trim()&&(r.normal>0||r.offer>0));if(!valid.length){alert("Inserisci almeno un prodotto con un prezzo.");return}const date=$("irDate").value?new Date($("irDate").value+"T12:00:00"):new Date();const market=$("irMarket").value||"";const items=valid.map(r=>{const cat=r.category||inferCategory(r.name)||"";const n=money(r.normal),o=money(r.offer),unit=money(n||o);ensureProductPrice(r.name.trim(),cat,n,o,market,date.toLocaleDateString("it-IT"));return {id:uid(),name:r.name.trim(),qty:Math.max(1,Number(r.qty)||1),price:o>0?o:n,normalPrice:n,offerPrice:o,isOffer:o>0,market,cat,section:(data.cats.find(c=>c.name===cat)||{}).section||""}});const total=money(items.reduce((a,x)=>a+money(x.price)*x.qty,0));const receipt={id:uid(),date:date.toISOString(),label:date.toLocaleString("it-IT"),items,total,markets:market?[market]:[] ,imported:true};data.receipts.push(receipt);save();history();};
@@ -917,11 +920,11 @@ function cats(){
 
 function backup(){
  open(`<h2>💾 Backup</h2><p class="muted">Salva budget, categorie, acquisti, lista, prodotti, offerte, supermercati, dispensa e storico.</p><button id="export" style="width:100%">⬇️ Esporta backup</button><button class="gray" id="imp" style="width:100%;margin-top:6px">⬆️ Importa backup</button><input id="file" type="file" accept=".json,application/json" hidden><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
- $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v7.3-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
+ $("close").onclick=close;$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="spesa-budget-v7.5-backup.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};$("imp").onclick=()=>$("file").click();$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{data=migrate(JSON.parse(r.result));save();close();render();alert("Backup importato.");}catch(x){alert("Backup non valido.")}};r.readAsText(f)};
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V7.4</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V7.5</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
  $("close").onclick=close;
  $("reset").onclick=()=>{if(confirm("Azzera il budget generale e tutti i budget delle categorie? Gli scontrini e i prodotti NON verranno cancellati.")){data.budget=0;data.budgetConfigured=false;data.categoryBudgetsConfigured=false;data.cats.forEach(c=>{c.budget=0;c.selected=false});save();close();render()}};
  $("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
