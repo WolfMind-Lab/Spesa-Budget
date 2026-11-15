@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Spesa — Budget">
-<title>Spesa — Budget V7.9</title>
+<title>Spesa — Budget V8.0</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;color:#111;background:#f2f2f7}
 *{box-sizing:border-box}body{margin:0;background:#f2f2f7;padding:calc(8px + env(safe-area-inset-top)) 10px calc(20px + env(safe-area-inset-bottom))}
@@ -20,7 +20,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 .footer{display:flex;justify-content:space-between;align-items:center;font-size:12px}.muted{color:#777;font-size:11px}.modal{position:fixed;inset:0;background:#0006;display:none;align-items:flex-end;justify-content:center;z-index:50;height:var(--vvh,100dvh);overflow:hidden}.modal.open{display:flex}.sheet{background:#fff;width:100%;max-width:680px;min-width:0;max-height:calc(var(--vvh,100dvh) - 8px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;border-radius:20px 20px 0 0;padding:16px 14px calc(18px + env(safe-area-inset-bottom));scroll-padding-bottom:35vh;-webkit-overflow-scrolling:touch}.sheet h2{font-size:19px;margin:0 0 12px}.line{display:flex;gap:7px;margin:7px 0}.line>*{flex:1;min-width:0}.item{display:flex;justify-content:space-between;gap:8px;padding:9px 0;border-bottom:1px solid #eee;font-size:13px}.actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.small{min-height:30px;padding:0 8px;font-size:11px}.stat{border:1px solid #eee;border-radius:10px;padding:10px;margin:7px 0;background:#fafafa}.check{display:flex;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #eee}.check input{width:20px;height:20px}.grow{flex:1}.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}.two>*{min-width:0}.two input,.two select{width:100%;min-width:0;max-width:100%}.successbox{background:#d1e7dd;padding:9px;border-radius:10px}.dangerbox{background:#f8d7da;padding:9px;border-radius:10px}.search{width:100%;margin-bottom:8px}.done{text-decoration:line-through;color:#999}
 .offerbox{background:#fff8df;border:1px solid #f0df9a;padding:9px;border-radius:10px;margin-top:8px}.qtygrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:5px}.qtygrid button{min-height:34px}.qtygrid button.sel{background:#111;color:#fff}.qtygrid button:not(.sel){background:#e9e9ee;color:#222}.smart-entry{margin:8px 0}.unit-fields{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.unit-fields input,.unit-fields select{width:100%}
 @media (max-width:520px){.top{flex-wrap:wrap}.top label{width:auto}.top input{flex:1;min-width:86px}.top button{flex:1;min-width:0}.top .new{margin-left:0;flex-basis:100%}.sheet{padding-left:12px;padding-right:12px}.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.two input,.two select{font-size:16px}.stat{min-width:0;overflow:hidden}.actions>button{max-width:100%}}\n@media (max-width:420px){.receipt-meta{grid-template-columns:1fr!important}.receipt-meta>div{min-width:0}.receipt-meta input,.receipt-meta select{width:100%;max-width:100%;min-width:0}.receipt-row-fields{grid-template-columns:minmax(0,1fr)!important}.sheet .two>*{min-width:0}.sheet input,.sheet select{max-width:100%}}
-.product-picker{position:relative;margin-top:4px}.product-picker input{width:100%;margin-top:0}.product-options{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:80;background:#fff;border:1px solid #d7d7dd;border-radius:12px;box-shadow:0 8px 24px #0002;max-height:230px;overflow:auto}.product-options.open{display:block}.product-option{display:block;width:100%;text-align:left;background:#fff;color:#111;border:0;border-bottom:1px solid #eee;border-radius:0;min-height:44px;padding:10px 12px;font-size:15px;font-weight:600}.product-option:last-child{border-bottom:0}.product-option:active{background:#eee}.product-empty{padding:11px 12px;color:#777;font-size:13px}
+.panelbar{position:sticky;top:-20px;z-index:90;display:flex;justify-content:flex-end;align-items:center;background:#fff;padding:4px 0 10px;margin:-4px 0 8px;border-bottom:1px solid #eee}.panelbar button{min-width:92px}.product-picker{position:relative;margin-top:4px}.product-picker input{width:100%;margin-top:0}.product-options{display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:80;background:#fff;border:1px solid #d7d7dd;border-radius:12px;box-shadow:0 8px 24px #0002;max-height:230px;overflow:auto}.product-options.open{display:block}.product-option{display:block;width:100%;text-align:left;background:#fff;color:#111;border:0;border-bottom:1px solid #eee;border-radius:0;min-height:44px;padding:10px 12px;font-size:15px;font-weight:600}.product-option:last-child{border-bottom:0}.product-option:active{background:#eee}.product-empty{padding:11px 12px;color:#777;font-size:13px}
 
 /* V7.7 — spaziatura e layout mobile dei pannelli */
 .modal{height:var(--vvh,100dvh);bottom:auto;overscroll-behavior:none}
@@ -58,7 +58,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V7.9</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V8.0</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -77,7 +77,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=7.9;
+const KEY="spesaBudgetData",VERSION=8.0;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","❄️ Frigorifero",0,"Pasta fresca · Pasta sfoglia · Salumi · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
 ["🛒 SPESA ALIMENTARE","🥦 Verdura",0,"Rucola · Insalata · Pomodori · Zucca · Carciofi · Fior di zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
@@ -662,11 +662,11 @@ function inferCategory(name){
   ["🥩 Carne",/salsiccia|fettine|macinato|pollo|alette|cosciotti|petto|carne|manzo|tacchino/],
   ["🐟 Pesce",/salmone|merluzzo|pesce|frutti di mare|misto mare|gamberetti/],
   ["🥛 Latte, yogurt e formaggi",/latte|yogurt|mozzarella|formaggio|provola|burro|panna/],
-  ["🥦 Verdura",/rucola|insalata|pomodor|zucca|peperon|zucchin|melanzan|patat|cipolla|aglio|prezzemolo|sedano|carciofi|fior di zucca|funghi|finocchi|cetrioli|radicchio|asparagi|fagiolini/],
+  ["🍪 Snack e dolci",/patatine(?!\s+surgelate)|popcorn|cioccolato|caramell|merend|dolci|gelato/],
+  ["🥦 Verdura",/rucola|insalata|pomodor|zucca|peperon|zucchin|melanzan|patat[ei]?\b|cipolla|aglio|prezzemolo|sedano|carciofi|fior di zucca|funghi|finocchi|cetrioli|radicchio|asparagi|fagiolini/],
   ["🍎 Frutta",/mela|banana|arancia|pera|uva|kiwi|fragola|pesca|albicocca|anguria|melone/],
   ["🍞 Pane e prodotti da forno",/pane|pan bauletto|piadina|focaccia|panino|cracker|grissini|fette biscottate/],
   ["☕ Caffè e tè",/caffe|\bte\b|camomilla|tisane/],
-  ["🍪 Snack e dolci",/patatine|popcorn|cioccolato|caramell|merend|dolci|gelato/],
   ["🥤 Bevande",/acqua|bibita|coca|pepsi|succo|succhi|bevanda|avena/],
   ["🫒 Olio, condimenti e spezie",/olio|aceto|glassa|pepe|spezie|dadi|maionese|ketchup|senape/],
   ["🥫 Conserve e legumi",/tonno|sgombro|simmenthal|ceci|fagioli|lenticchie|piselli|mais|passata|pelati|concentrato|salsa|olive|acciughe|capperi/],
@@ -831,9 +831,10 @@ function list(){
 }
 
 function products(){
- const rows=data.products.map((p,i)=>`<div class="item"><div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div></div><div class="actions"><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
- open(`<h2>🏷️ Prodotti</h2><p class="muted">Il prezzo originario è il riferimento principale; il prezzo in offerta viene conservato separatamente quando disponibile.</p>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
- $("close").onclick=close;$('sheet').querySelectorAll('[data-del]').forEach(e=>e.onclick=()=>{data.products.splice(+e.dataset.del,1);save();products()});
+ const rows=data.products.map((p,i)=>`<div class="item"><div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc(p.category||"Categoria non assegnata")}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div></div><div class="actions"><button class="gray small" data-edit-product="${i}">Modifica</button><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
+ open(`<div class="panelbar"><button class="gray" id="closeTop">Chiudi ✕</button></div><h2>🏷️ Prodotti</h2><p class="muted">Il prezzo originario è il riferimento principale; il prezzo in offerta viene conservato separatamente quando disponibile. Puoi correggere qui la categoria proposta per gli acquisti futuri.</p>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
+ $("close").onclick=close;$("closeTop").onclick=close;$('sheet').querySelectorAll('[data-del]').forEach(e=>e.onclick=()=>{data.products.splice(+e.dataset.del,1);save();products()});
+ $('sheet').querySelectorAll('[data-edit-product]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.editProduct];const name=prompt("Nome prodotto",p.name);if(name===null)return;const cat=prompt("Categoria esatta (scegli tra quelle mostrate nell'app):\n"+data.cats.map(c=>c.name).join("\n"),p.category||"");if(cat===null)return;const target=data.cats.find(c=>c.name===cat.trim());if(!target){alert("Categoria non riconosciuta: nessuna modifica applicata.");return}p.name=name.trim()||p.name;p.category=target.name;(p.priceHistory||[]).forEach(h=>h.category=target.name);data.receipts.forEach(r=>r.items.forEach(it=>{if(String(it.name).toLowerCase()===String(p.name).toLowerCase())it.cat=target.name}));data.history.forEach(h=>{if(String(h.name).toLowerCase()===String(p.name).toLowerCase())h.category=target.name});save();products()});
  $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.ph];const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} · ${esc(h.market||"")}</small></span><span>Orig. ${euro(h.normalPrice||h.price)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}</div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" onclick="products()">Indietro</button>`) });
 }
 
@@ -920,13 +921,53 @@ function newShopping(){
  data.cats.forEach(c=>c.items=[]); data.currentReceiptId=null; save(); render();
 }
 
+function updateReceiptTotals(r){
+ r.total=money((r.items||[]).reduce((a,x)=>a+itemTotal(x),0));
+ r.comparison=r.paperTotal?money(r.total-r.paperTotal):null;
+}
+function syncReceiptItem(r,it){
+ if(!it.id)it.id=uid();
+ const cat=data.cats.find(c=>c.name===it.cat);
+ const product=data.products.find(p=>String(p.name||"").toLowerCase()===String(it.name||"").toLowerCase());
+ if(product){product.category=it.cat;product.packageSize=it.packageSize||product.packageSize||0;product.packageUnit=it.packageUnit||product.packageUnit||"";product.measureUnit=it.measureUnit||product.measureUnit||"";if(it.normalPrice>0)product.normalPrice=it.normalPrice;if(it.offerPrice>0)product.offerPrice=it.offerPrice;product.price=money(product.normalPrice||product.offerPrice||it.price||product.price||0)}
+ else if(it.name){data.products.push({name:it.name,category:it.cat,normalPrice:Number(it.normalPrice||it.price||0),offerPrice:Number(it.offerPrice||0),price:Number(it.normalPrice||it.price||0),packageSize:Number(it.packageSize||0),packageUnit:it.packageUnit||"",measureUnit:it.measureUnit||"",lastMarket:it.market||"",priceHistory:[]})}
+ let h=data.history.find(z=>z.itemId===it.id);
+ const values={itemId:it.id,name:it.name,category:it.cat,qty:Number(it.qty||1),price:Number(it.price||0),normalPrice:Number(it.normalPrice||0),offerPrice:Number(it.offerPrice||0),isOffer:Boolean(it.isOffer),measureQty:Number(it.measureQty||0),measureUnit:it.measureUnit||"",packageSize:Number(it.packageSize||0),packageUnit:it.packageUnit||"",market:it.market||""};
+ if(h)Object.assign(h,values);else data.history.push({id:uid(),date:r.date||new Date().toISOString(),...values});
+}
+function editReceiptItem(receiptId,itemId){
+ const r=data.receipts.find(x=>x.id===receiptId),it=r?.items?.find(x=>x.id===itemId);if(!r||!it)return;
+ const categories=data.cats.map(c=>c.name);
+ const options=categories.map(c=>`<option value="${esc(c)}" ${it.cat===c?"selected":""}>${esc(c)}</option>`).join("");
+ open(`<h2>✏️ Modifica riga scontrino</h2>
+ <label class="muted">Nome prodotto</label><input id="riName" value="${esc(it.name||"")}" style="width:100%">
+ <label class="muted" style="display:block;margin-top:8px">Categoria</label><select id="riCat" style="width:100%">${options}</select>
+ <div class="two" style="margin-top:8px"><div><label class="muted">Quantità confezioni/pezzi</label><input id="riQty" type="number" min="1" step="1" value="${Number(it.qty||1)}"></div><div><label class="muted">Prezzo unitario €</label><input id="riPrice" type="number" min="0" step=".01" value="${Number(it.price||0)}"></div></div>
+ <div class="two" style="margin-top:8px"><div><label class="muted">Peso/volume effettivo</label><input id="riMeasure" type="number" min="0" step="any" value="${Number(it.measureQty||0)||""}" placeholder="es. 0,650"></div><div><label class="muted">Unità peso/volume</label><select id="riUnit"><option value="" ${!it.measureUnit?"selected":""}>Non specificata</option>${["kg","g","L","ml"].map(u=>`<option value="${u}" ${it.measureUnit===u?"selected":""}>${u}</option>`).join("")}</select></div></div>
+ <div class="two" style="margin-top:8px"><div><label class="muted">Formato confezione</label><input id="riPack" type="number" min="0" step="any" value="${Number(it.packageSize||0)||""}" placeholder="es. 500"></div><div><label class="muted">Unità confezione</label><select id="riPackUnit"><option value="" ${!it.packageUnit?"selected":""}>Nessuna</option>${["g","kg","ml","L","pezzi"].map(u=>`<option value="${u}" ${it.packageUnit===u?"selected":""}>${u}</option>`).join("")}</select></div></div>
+ <div class="two" style="margin-top:8px"><div><label class="muted">Prezzo originario €</label><input id="riNormal" type="number" min="0" step=".01" value="${Number(it.normalPrice||it.price||0)}"></div><div><label class="muted">Prezzo offerta €</label><input id="riOffer" type="number" min="0" step=".01" value="${Number(it.offerPrice||0)}"></div></div>
+ <div class="successbox" id="riPreview" style="margin-top:8px">Totale riga: <b>—</b></div>
+ <button id="riSave" style="width:100%;margin-top:9px">Salva modifiche</button><button class="gray" id="riSplit" style="width:100%;margin-top:6px">＋ Duplica in una nuova riga</button><button class="gray" id="riDelete" style="width:100%;margin-top:6px">🗑️ Elimina riga</button><button class="gray" id="riCancel" style="width:100%;margin-top:6px">Annulla</button>`);
+ const val=id=>Number(String($(id).value||0).replace(",","."))||0;
+ const preview=()=>{const price=val("riOffer")>0?val("riOffer"):val("riPrice")||val("riNormal"),total=money(price*Math.max(1,val("riQty"))*(val("riMeasure")>0?val("riMeasure"):1));$("riPreview").innerHTML=`Totale riga: <b>${euro(total)}</b>`};
+ ["riQty","riPrice","riMeasure","riNormal","riOffer"].forEach(id=>$(id).oninput=preview);preview();
+ $("riCancel").onclick=()=>{if(it._draft){r.items=r.items.filter(x=>x.id!==itemId);save()}receiptView(receiptId)};
+ $("riSave").onclick=()=>{const name=$("riName").value.trim();if(!name){alert("Inserisci il nome del prodotto.");return}const qty=Math.max(1,Math.floor(val("riQty")||1)),normal=val("riNormal"),offer=val("riOffer"),price=offer>0?offer:(val("riPrice")||normal);if(price<=0){alert("Inserisci un prezzo valido.");return}Object.assign(it,{name,cat:$("riCat").value,qty,price:money(price),normalPrice:money(normal||price),offerPrice:money(offer),isOffer:offer>0,measureQty:val("riMeasure"),measureUnit:$("riUnit").value,packageSize:val("riPack"),packageUnit:$("riPackUnit").value});delete it._draft;syncReceiptItem(r,it);updateReceiptTotals(r);save();receiptView(receiptId)};
+ $("riSplit").onclick=()=>{const copy={...it,id:uid(),name:"Nuovo prodotto da distinguere",qty:1};r.items.push(copy);syncReceiptItem(r,copy);updateReceiptTotals(r);save();editReceiptItem(receiptId,copy.id)};
+ $("riDelete").onclick=()=>{if(!confirm(`Eliminare la riga "${it.name}" dallo scontrino?`))return;r.items=r.items.filter(x=>x.id!==itemId);data.history=data.history.filter(h=>h.itemId!==itemId);updateReceiptTotals(r);save();receiptView(receiptId)};
+}
+function addReceiptItem(receiptId){
+ const r=data.receipts.find(x=>x.id===receiptId);if(!r)return;
+ const cat=data.cats[0]?.name||"";const it={id:uid(),name:"",cat,qty:1,price:0,normalPrice:0,offerPrice:0,measureQty:0,measureUnit:"",packageSize:0,packageUnit:"",market:"",_draft:true};r.items.push(it);save();editReceiptItem(receiptId,it.id);
+}
 function receiptView(id){
  const r=data.receipts.find(x=>x.id===id);if(!r)return history();
+ r.items.forEach(x=>{if(!x.id)x.id=uid()});
  const rows=r.items.map(x=>`<div class="item"><span><b>${esc(x.name||"Prodotto")}</b><br><small>${esc(x.cat||"")} · ${x.qty} × ${euro(x.price)}${x.measureQty?` · ${x.measureQty} ${esc(x.measureUnit||"")}`:""}${x.packageSize?` · confezione ${x.packageSize}${esc(x.packageUnit||"")}`:""}${x.isOffer?" · 🏷️ offerta":""}${x.market?" · 🏪 "+esc(x.market):""}</small></span><span><b>${euro(itemTotal(x))}</b><br><button class="gray small" data-edit-receipt-item="${esc(x.id)}">Modifica</button></span></div>`).join("");
- open(`<h2>🧾 ${esc(r.label||"Scontrino")}</h2><div class="stat"><b>ID:</b> ${esc(r.identifier||r.id)}<br><b>Data:</b> ${new Date(r.date).toLocaleString("it-IT")}<br><b>Supermercato:</b> ${r.markets?.length?esc(r.markets.join(", ")):"Non specificato"}<br><b>Righe:</b> ${r.items.length} · <b>Pezzi:</b> ${Number(r.pieceCount||r.items.reduce((a,x)=>a+Number(x.qty||1),0))}<br><b>Totale app:</b> ${euro(r.total)}<br><b>Totale cartaceo:</b> ${r.paperTotal?euro(r.paperTotal):"Non inserito"}<br>${r.paperTotal?`<b>Differenza:</b> <span class="${Math.abs(r.total-r.paperTotal)<.01?"green":"red"}">${euro(r.total-r.paperTotal)}</span>`:""}</div><div class="actions"><button id="editReceipt">✏️ Modifica nome e dati</button><button class="gray" id="compareReceipt">🧾 Confronta cartaceo</button></div>${rows}<button id="delReceipt" class="danger" style="width:100%;margin-top:8px">🗑️ Elimina questo scontrino</button><button class="gray" id="back" style="width:100%;margin-top:6px">Indietro</button>`);
- $("back").onclick=history;$("editReceipt").onclick=()=>{const label=prompt("Nome dello scontrino",r.label||"");if(label===null)return;const idn=prompt("Numero identificativo",r.identifier||r.id);if(idn===null)return;const pc=prompt("Numero pezzi sullo scontrino",String(r.pieceCount||0));if(pc===null)return;const paper=prompt("Totale cartaceo (lascia vuoto se non disponibile)",r.paperTotal?String(r.paperTotal):"");r.label=label.trim()||r.label;r.identifier=idn.trim()||r.identifier;r.pieceCount=Math.max(0,Number(pc)||0);r.paperTotal=Number(String(paper||0).replace(",","."))||0;r.comparison=r.paperTotal?money(r.total-r.paperTotal):null;save();receiptView(id)};
- $("compareReceipt").onclick=()=>{const paper=prompt("Inserisci il totale dello scontrino cartaceo",r.paperTotal?String(r.paperTotal):"");if(paper===null)return;r.paperTotal=Number(String(paper).replace(",","."))||0;r.comparison=r.paperTotal?money(r.total-r.paperTotal):null;save();receiptView(id)};
- $("sheet").querySelectorAll("[data-edit-receipt-item]").forEach(b=>b.onclick=()=>{const it=r.items.find(x=>x.id===b.dataset.editReceiptItem);if(!it)return;const name=prompt("Nome prodotto",it.name||"");if(name===null)return;const qty=prompt("Quantità confezioni/pezzi",String(it.qty||1));if(qty===null)return;const price=prompt("Prezzo unitario o al kg/litro",String(it.price||0));if(price===null)return;it.name=name.trim()||it.name;it.qty=Math.max(1,Number(qty)||1);it.price=Number(String(price).replace(",","."))||0;const cat=inferCategory(it.name);if(cat)it.cat=cat;r.total=money(r.items.reduce((a,x)=>a+itemTotal(x),0));r.pieceCount=r.items.reduce((a,x)=>a+Number(x.qty||1),0);r.comparison=r.paperTotal?money(r.total-r.paperTotal):null;save();receiptView(id)});
+ open(`<h2>🧾 ${esc(r.label||"Scontrino")}</h2><div class="stat"><b>ID:</b> ${esc(r.identifier||r.id)}<br><b>Data:</b> ${new Date(r.date).toLocaleString("it-IT")}<br><b>Supermercato:</b> ${r.markets?.length?esc(r.markets.join(", ")):"Non specificato"}<br><b>Righe:</b> ${r.items.length} · <b>Pezzi:</b> ${Number(r.pieceCount||r.items.reduce((a,x)=>a+Number(x.qty||1),0))}<br><b>Totale app:</b> ${euro(r.total)}<br><b>Totale cartaceo:</b> ${r.paperTotal?euro(r.paperTotal):"Non inserito"}<br>${r.paperTotal?`<b>Differenza:</b> <span class="${Math.abs(r.total-r.paperTotal)<.01?"green":"red"}">${euro(r.total-r.paperTotal)}</span>`:""}</div><div class="actions"><button id="editReceipt">✏️ Modifica nome e dati</button><button class="gray" id="compareReceipt">🧾 Confronta cartaceo</button><button class="gray" id="addReceiptItem">＋ Aggiungi riga</button></div>${rows||"<p>Nessuna riga nello scontrino.</p>"}<button id="delReceipt" class="danger" style="width:100%;margin-top:8px">🗑️ Elimina questo scontrino</button><button class="gray" id="back" style="width:100%;margin-top:6px">Indietro</button>`);
+ $("back").onclick=history;$("addReceiptItem").onclick=()=>addReceiptItem(id);$("editReceipt").onclick=()=>{const label=prompt("Nome dello scontrino",r.label||"");if(label===null)return;const idn=prompt("Numero identificativo",r.identifier||r.id);if(idn===null)return;const pc=prompt("Numero pezzi sullo scontrino",String(r.pieceCount||0));if(pc===null)return;const paper=prompt("Totale cartaceo (lascia vuoto se non disponibile)",r.paperTotal?String(r.paperTotal):"");if(paper===null)return;r.label=label.trim()||r.label;r.identifier=idn.trim()||r.identifier;r.pieceCount=Math.max(0,Number(pc)||0);r.paperTotal=Number(String(paper||0).replace(",","."))||0;updateReceiptTotals(r);save();receiptView(id)};
+ $("compareReceipt").onclick=()=>{const paper=prompt("Inserisci il totale dello scontrino cartaceo",r.paperTotal?String(r.paperTotal):"");if(paper===null)return;r.paperTotal=Number(String(paper).replace(",","."))||0;updateReceiptTotals(r);save();receiptView(id)};
+ $("sheet").querySelectorAll("[data-edit-receipt-item]").forEach(b=>b.onclick=()=>editReceiptItem(id,b.dataset.editReceiptItem));
  $("delReceipt").onclick=()=>{if(confirm("Eliminare definitivamente questo scontrino?")){data.receipts=data.receipts.filter(x=>x.id!==id);save();history()}};
 }
 
@@ -1005,7 +1046,7 @@ function smartEntry(){
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V7.9</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V8.0</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
  $("close").onclick=close;
  $("reset").onclick=()=>{if(confirm("Azzera il budget generale e tutti i budget delle categorie? Gli scontrini e i prodotti NON verranno cancellati.")){data.budget=0;data.budgetConfigured=false;data.categoryBudgetsConfigured=false;data.cats.forEach(c=>{c.budget=0;c.selected=false});save();close();render()}};
  $("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
