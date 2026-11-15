@@ -89,13 +89,13 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 #photoLightbox .photo-caption{position:fixed;left:12px;right:64px;top:calc(20px + env(safe-area-inset-top));color:#fff;font-size:14px;font-weight:650;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 
-/* V8.7 — campi aggiuntivi dell’anagrafica prodotto */
+/* V8.8 — gestione e pulizia dello storico prezzi */
 #prName,#prBrand,#prLine,#prVariant,#prBarcode,#prSize,#prMarket,#prNotes{width:100%;min-width:0}
 </style>
 </head>
 <body>
 <div class="app">
-<header><div class="head"><h1>🛒 SPESA — BUDGET V8.7</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
+<header><div class="head"><h1>🛒 SPESA — BUDGET V8.8</h1><button class="gray" id="settings">⚙️</button></div><div class="sub">Budget sincronizzato · quantità · offerte · prodotti collegati alle categorie.</div></header>
 
 <div class="card top"><label>💰 Budget</label><input id="budget" type="number" inputmode="decimal" step=".01"><button id="setBudget">Imposta</button><button id="finish">✅ Fine spesa</button><button class="gray new" id="new">🛒 Nuova spesa</button></div>
 <div class="summary"><div class="metric"><small>Budget</small><b id="bTot"></b></div><div class="metric"><small>Speso</small><b id="sTot"></b></div><div class="metric"><small>Rimasto</small><b id="rTot"></b></div><div class="metric"><small>Stato</small><b id="status"></b></div></div>
@@ -115,7 +115,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=8.7;
+const KEY="spesaBudgetData",VERSION=8.8;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","❄️ Frigorifero",0,"Pasta fresca · Pasta sfoglia · Salumi · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
 ["🛒 SPESA ALIMENTARE","🥬 Ortofrutta",0,"Rucola · Insalata · Pomodori · Zucca · Carciofi · Fior di zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
@@ -926,6 +926,29 @@ function list(){
  $("addL").onclick=()=>{const n=input.value.trim(),q=Number($("lq").value);if(!n){alert("Scegli un prodotto dall'elenco oppure scrivine uno nuovo.");return}if(!data.shoppingList.some(x=>x.name.toLowerCase()===n.toLowerCase()&&!x.done))data.shoppingList.push({name:n,qty:q,category:input.dataset.category||"",done:false});save();renderRows();input.value="";delete input.dataset.category;options.classList.remove("open")};
  renderRows();
 }
+
+function productHistoryView(productIndex){
+ const p=data.products[productIndex];if(!p)return products(true);
+ const history=Array.isArray(p.priceHistory)?p.priceHistory:[];
+ const signature=h=>JSON.stringify([
+  String(h.date||"").trim(),String(h.market||"").trim().toLocaleLowerCase("it"),
+  money(h.normalPrice||0),money(h.offerPrice||0),money(h.price||0)
+ ]);
+ const counts={};history.forEach(h=>{const k=signature(h);counts[k]=(counts[k]||0)+1});
+ const duplicateCount=Object.values(counts).reduce((n,c)=>n+Math.max(0,c-1),0);
+ const rows=history.map((h,i)=>({h,i})).reverse().map(({h,i})=>`<div class="item"><div class="grow"><b>${esc(h.date||"Data non indicata")}</b><div class="muted">${esc(h.category||"")} · ${esc(h.market||"")}</div><div>Orig. ${euro(h.normalPrice||h.price||0)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</div></div><div class="actions"><button class="gray small" data-edit-ph="${i}">✏️ Modifica</button><button class="gray small" data-delete-ph="${i}">🗑️</button></div></div>`).join("")||"<p>Nessun prezzo storico.</p>";
+ open(`<div class="panelbar"><button class="gray" id="productHistoryBackTop">Indietro</button></div><h2>💶 Storico: ${esc(p.name)}</h2><div class="stat"><b>Prezzo attuale:</b> ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · Offerta ${euro(p.offerPrice)}`:""}<br><b>Registrazioni:</b> ${history.length}<br><b>Possibili duplicati identici:</b> ${duplicateCount}</div><p class="muted">Puoi correggere o eliminare ogni singola osservazione. Le modifiche non toccano gli scontrini salvati.</p><button class="gray" id="cleanHistoryDuplicates" style="width:100%;margin-bottom:10px" ${duplicateCount?"":"disabled"}>🧹 Rimuovi duplicati identici (${duplicateCount})</button>${rows}<button class="gray" id="productHistoryBack" style="width:100%;margin-top:8px">Indietro</button>`);
+ $("productHistoryBack").onclick=()=>products(true);$("productHistoryBackTop").onclick=()=>products(true);
+ $("sheet").querySelectorAll("[data-edit-ph]").forEach(e=>e.onclick=()=>{
+  const i=+e.dataset.editPh,h=history[i];if(!h)return;
+  open(`<h2>✏️ Modifica registrazione</h2><label class="muted">Data e ora</label><input id="heDate" value="${esc(h.date||"")}" style="width:100%"><label class="muted">Categoria</label><input id="heCat" value="${esc(h.category||p.category||"")}" style="width:100%"><label class="muted">Supermercato</label><input id="heMarket" value="${esc(h.market||"")}" style="width:100%"><div class="two"><div><label class="muted">Prezzo normale €</label><input id="heNormal" type="number" min="0" step=".01" value="${h.normalPrice??h.price??""}"></div><div><label class="muted">Prezzo offerta €</label><input id="heOffer" type="number" min="0" step=".01" value="${h.offerPrice??""}"></div></div><div class="actions"><button id="heSave" style="width:100%">Salva modifiche</button><button id="heCancel" class="gray" style="width:100%">Annulla</button></div>`);
+  $("heCancel").onclick=()=>productHistoryView(productIndex);
+  $("heSave").onclick=()=>{const normal=money($("heNormal").value),offer=money($("heOffer").value);if(normal<=0&&offer<=0){alert("Inserisci almeno un prezzo valido.");return}Object.assign(h,{date:$("heDate").value.trim(),category:$("heCat").value.trim(),market:$("heMarket").value.trim(),normalPrice:normal,offerPrice:offer,price:money(offer||normal),isOffer:offer>0});save();productHistoryView(productIndex)};
+ });
+ $("sheet").querySelectorAll("[data-delete-ph]").forEach(e=>e.onclick=()=>{const i=+e.dataset.deletePh;if(!confirm("Eliminare soltanto questa registrazione dallo storico? Gli scontrini e le altre registrazioni resteranno invariati."))return;history.splice(i,1);p.priceHistory=history;save();productHistoryView(productIndex)});
+ $("cleanHistoryDuplicates").onclick=()=>{if(!duplicateCount)return;if(!confirm(`Sono state individuate ${duplicateCount} registrazioni identiche in eccesso. Vuoi conservarne una per gruppo e rimuovere solo le copie esatte?`))return;const seen=new Set();p.priceHistory=history.filter(h=>{const k=signature(h);if(seen.has(k))return false;seen.add(k);return true});save();productHistoryView(productIndex)};
+}
+
 function products(restorePosition=false){
  const __panelY=restorePosition?$("sheet").scrollTop:0;
  const rows=data.products.map((p,i)=>`<div class="item">${p.photo?`<img class="product-thumb" src="${p.photo}" alt="">`:""}<div class="grow"><b>${esc(p.name)}</b><div class="muted">${esc([p.brand,p.line,p.variant].filter(Boolean).join(" · "))}${p.barcode?` · EAN ${esc(p.barcode)}`:""}${p.category?`<br>${esc(p.category)}`:"Categoria non assegnata"}${p.packageSize?` · Formato ${p.packageSize}${esc(p.packageUnit||"")}`:""} · Prezzo originario ${p.normalPrice?euro(p.normalPrice):"—"}${p.offerPrice?` · 🏷️ offerta ${euro(p.offerPrice)}`:""}${p.lastMarket?" · "+esc(p.lastMarket):""}</div><div class="insight">${productInsight(p)}</div></div><div class="actions"><button class="gray small" data-anagrafica="${i}">Anagrafica</button><button class="gray small" data-edit-product="${i}">Modifica</button><button class="gray small" data-ph="${i}">Storico</button><button class="gray small" data-del="${i}">×</button></div></div>`).join("")||"<p>Nessun prodotto archiviato.</p>";
@@ -936,7 +959,7 @@ function products(restorePosition=false){
  $('sheet').querySelectorAll('[data-del]').forEach(e=>e.onclick=()=>{if(!confirm("Eliminare questo prodotto dal catalogo? Gli scontrini e lo storico già registrati non verranno cancellati."))return;data.products.splice(+e.dataset.del,1);save();products(true)});
  $('sheet').querySelectorAll('[data-edit-product]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.editProduct];const name=prompt("Nome prodotto",p.name);if(name===null)return;const cat=prompt("Categoria esatta (scegli tra quelle mostrate nell'app):\n"+data.cats.map(c=>c.name).join("\n"),p.category||"");if(cat===null)return;const target=data.cats.find(c=>c.name===cat.trim());if(!target){alert("Categoria non riconosciuta: nessuna modifica applicata.");return}p.name=name.trim()||p.name;p.category=target.name;(p.priceHistory||[]).forEach(h=>h.category=target.name);data.receipts.forEach(r=>r.items.forEach(it=>{if(String(it.name).toLowerCase()===String(p.name).toLowerCase())it.cat=target.name}));data.history.forEach(h=>{if(String(h.name).toLowerCase()===String(p.name).toLowerCase())h.category=target.name});save();products(true)});
  if(restorePosition)requestAnimationFrame(()=>{$("sheet").scrollTop=__panelY});
- $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.ph];const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date)}<br><small>${esc(h.category||"")} · ${esc(h.market||"")}</small></span><span>Orig. ${euro(h.normalPrice||h.price)}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}</div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" id="productHistoryBack">Indietro</button>`);$("productHistoryBack").onclick=()=>products(true)});
+ $("sheet").querySelectorAll('[data-ph]').forEach(e=>e.onclick=()=>productHistoryView(+e.dataset.ph));
 }
 
 function openProductRecord(product=null,onDone=products){
@@ -969,7 +992,7 @@ function openProductRecord(product=null,onDone=products){
   const previousName=p.name;
   Object.assign(p,{name,brand:$("prBrand").value.trim(),line:$("prLine").value.trim(),variant:$("prVariant").value.trim(),barcode,category,packageSize:Number($("prSize").value||0),packageUnit:$("prUnit").value,normalPrice:normal||p.normalPrice||0,offerPrice:offer,price:money(offer||normal||p.price||0),lastMarket:$("prMarket").value.trim(),qualityRating:Number($("prQuality").value||0),photo,productNotes:$("prNotes").value.trim()});
   if(!Array.isArray(p.priceHistory))p.priceHistory=[];
-  if(normal>0||offer>0){p.priceHistory.push({date:new Date().toLocaleString("it-IT"),category,market:p.lastMarket,normalPrice:normal,offerPrice:offer,price:money(offer||normal),packageSize:p.packageSize,packageUnit:p.packageUnit,qualityRating:p.qualityRating,source:"anagrafica"});}
+  if(!product&&(normal>0||offer>0)){p.priceHistory.push({date:new Date().toLocaleString("it-IT"),category,market:p.lastMarket,normalPrice:normal,offerPrice:offer,price:money(offer||normal),packageSize:p.packageSize,packageUnit:p.packageUnit,qualityRating:p.qualityRating,source:"anagrafica"});}
   if(!product)data.products.push(p);
   if(previousName&&previousName!==name){
    data.cats.forEach(c=>c.items.forEach(it=>{if(it.name===previousName)it.name=name}));
