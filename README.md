@@ -1,6 +1,6 @@
-# Spesa — Budget V10.1
+# Spesa — Budget V10.2
 
-Versione V10.1, aggiornamento grafico e funzionale della V10.0, costruita sul progetto completo V9.0. Sono mantenuti `index.backup.html`, manifest, service worker e README; la chiave di archiviazione resta `spesaBudgetData`.
+Versione V10.2, aggiornamento di V10.1 con identità grafica e supporto icone per l’installazione PWA. La base funzionale include le modifiche introdotte in V10.1. Sono mantenuti `index.backup.html`, manifest, service worker e README; la chiave di archiviazione resta `spesaBudgetData`.
 
 ## Aggiornamenti V10.1
 - Modulo anagrafica più ordinato: identità del prodotto separata dai dati commerciali della confezione.

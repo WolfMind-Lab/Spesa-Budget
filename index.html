@@ -118,7 +118,7 @@ input,select{border:1px solid #d7d7dd;border-radius:10px;padding:8px 9px;font-si
 
 <script>
 "use strict";
-const KEY="spesaBudgetData",VERSION=10.1;
+const KEY="spesaBudgetData",APP_VERSION="10.2",SCHEMA_VERSION=10.1;
 const DEFAULTS=[
 ["🛒 SPESA ALIMENTARE","❄️ Frigorifero",0,"Pasta fresca · Pasta sfoglia · Salumi · Prosciutto crudo · Prosciutto cotto · Mortadella · Provola · Guanciale · Pancetta · Burro · Würstel"],
 ["🛒 SPESA ALIMENTARE","🥬 Ortofrutta",0,"Rucola · Insalata · Pomodori · Zucca · Carciofi · Fior di zucca · Peperoni · Zucchine · Melanzane · Patate · Cipolla · Aglio · Prezzemolo · Sedano"],
@@ -572,7 +572,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 const uid=()=>crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2);
 
 function fresh(){
- return {schemaVersion:VERSION,budget:0,budgetConfigured:false,categoryBudgetsConfigured:false,cats:DEFAULTS.map(x=>({section:x[0],name:x[1],budget:0,note:x[3],selected:false,items:[]})),history:[],receipts:[],currentReceiptId:null,shoppingList:[],products:[],supermarkets:[],pantry:[],washLog:[],smartBasket:[],supermarketDetails:{}};
+ return {schemaVersion:SCHEMA_VERSION,budget:0,budgetConfigured:false,categoryBudgetsConfigured:false,cats:DEFAULTS.map(x=>({section:x[0],name:x[1],budget:0,note:x[3],selected:false,items:[]})),history:[],receipts:[],currentReceiptId:null,shoppingList:[],products:[],supermarkets:[],pantry:[],washLog:[],smartBasket:[],supermarketDetails:{}};
 }
 function migrate(x){
  if(!x||!Array.isArray(x.cats))return fresh();
@@ -655,12 +655,12 @@ function migrate(x){
  }));
  // Catalogo 6.8: corregge denominazioni senza cancellare prodotti già salvati dall'utente.
  // "Coton fiocchi" non viene più proposto; il nome standard è "Cotton fioc".
- x.schemaVersion=VERSION;
+ x.schemaVersion=SCHEMA_VERSION;
  return x;
 }
 let data;
 try{data=migrate(JSON.parse(localStorage.getItem(KEY)||"null")||fresh())}catch(e){data=fresh()}
-function save(){data.schemaVersion=VERSION;localStorage.setItem(KEY,JSON.stringify(data))}
+function save(){data.schemaVersion=SCHEMA_VERSION;localStorage.setItem(KEY,JSON.stringify(data))}
 function itemTotal(x){const q=Number(x.qty||1),p=money(x.price||0);return money(p*(Number(x.measureQty||0)>0?Number(x.measureQty):1)*q)}
 function receiptVatTotal(r){return money((r.items||[]).reduce((sum,x)=>{const rate=Number(x.vatRate||0);return sum+(rate>0?itemTotal(x)*rate/(100+rate):0)},0))}
 function vatLabel(r){const known=(r.items||[]).filter(x=>Number(x.vatRate)>0).length;return known?`IVA inclusa stimata (righe con aliquota): ${euro(receiptVatTotal(r))}`:"IVA non specificata per le righe"}
@@ -975,7 +975,7 @@ function products(restorePosition=false){
   $("selAllProducts").onclick=()=>{selected=new Set(data.products.map((_,i)=>i));draw()};$("deselProducts").onclick=()=>{selected.clear();draw()};
   $("sheet").querySelectorAll('[data-select-product]').forEach(e=>e.onchange=()=>{const i=+e.dataset.selectProduct;e.checked?selected.add(i):selected.delete(i);$("productSelectedCount").textContent=selected.size;$("deleteSelectedProducts").disabled=!selected.size;$("exportSelectedProducts").disabled=!selected.size});
   $("deleteSelectedProducts").onclick=()=>{if(!selected.size)return;const names=[...selected].map(i=>data.products[i]?.name).filter(Boolean);if(!confirm(`Eliminare ${names.length} anagrafiche selezionate? Gli scontrini e lo storico generale resteranno invariati.`))return;data.products=data.products.filter((_,i)=>!selected.has(i));selected.clear();save();draw()};
-  $("exportSelectedProducts").onclick=()=>{const chosen=[...selected].sort((a,b)=>a-b).map(i=>data.products[i]).filter(Boolean).map(x=>{const z=JSON.parse(JSON.stringify(x));z.priceHistory=[];return z});downloadJSON({type:"spesa-budget-anagrafiche",schemaVersion:VERSION,products:chosen},"spesa-budget-anagrafiche-selezionate.json")};
+  $("exportSelectedProducts").onclick=()=>{const chosen=[...selected].sort((a,b)=>a-b).map(i=>data.products[i]).filter(Boolean).map(x=>{const z=JSON.parse(JSON.stringify(x));z.priceHistory=[];return z});downloadJSON({type:"spesa-budget-anagrafiche",schemaVersion:SCHEMA_VERSION,products:chosen},"spesa-budget-anagrafiche-selezionate.json")};
   $('sheet').querySelectorAll('[data-anagrafica]').forEach(e=>e.onclick=()=>openProductRecord(data.products[+e.dataset.anagrafica],()=>products(true)));
   $("sheet").querySelectorAll("[data-stock-minus]").forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.stockMinus];p.stockQty=Math.max(0,Number(p.stockQty||0)-1);save();draw()});
   $("sheet").querySelectorAll("[data-stock-plus]").forEach(e=>e.onclick=()=>{const p=data.products[+e.dataset.stockPlus];p.stockQty=Number(p.stockQty||0)+1;save();draw()});
@@ -1118,7 +1118,7 @@ function priceCatalog(){
   const bindRows=()=>{$("priceRows").querySelectorAll('[data-select-price]').forEach(e=>e.onchange=()=>{const i=+e.dataset.selectPrice;e.checked?selected.add(i):selected.delete(i);updateSelection()});$("priceRows").querySelectorAll('[data-price-item]').forEach(row=>row.onclick=e=>{if(e.target.closest('input,label'))return;const i=+row.dataset.priceItem,p=data.products[i];if(!p)return;const rows=(p.priceHistory||[]).slice().reverse().map(h=>`<div class="item"><span>${esc(h.date||"")}<br><small>${esc(h.category||"")} ${h.market?"· 🏪 "+esc(h.market):""}</small></span><span>Orig. ${h.normalPrice?euro(h.normalPrice):"—"}${h.offerPrice?` · Off. ${euro(h.offerPrice)}`:""}</span></div>`).join("");const byMarket={};(p.priceHistory||[]).forEach(h=>{if(h.market){const k=h.market;if(!byMarket[k]||String(h.date||"")>=String(byMarket[k].date||""))byMarket[k]=h}});const marketRows=Object.entries(byMarket).map(([m,h])=>`<div class="item"><span>🏪 ${esc(m)}<br><small>${esc(h.date||"")}</small></span><b>${euro(h.offerPrice||h.normalPrice||h.price||0)}</b></div>`).join("");open(`<h2>💶 ${esc(p.name)}</h2><div class="stat"><b>Prezzo originario:</b> ${p.normalPrice?euro(p.normalPrice):"—"}<br><b>Offerta:</b> ${p.offerPrice?euro(p.offerPrice):"—"}<br><b>Valutazione qualità/prezzo:</b> ${p.qualityRating?`${p.qualityRating}/5`:"Non valutato"}<br><b>${productInsight(p)}</b></div><h3>Confronto tra supermercati</h3>${marketRows||"<p class=muted>Nessun confronto disponibile: registra il prodotto in più supermercati.</p>"}<h3>Storico variazioni di prezzo</h3><div class="actions"><button id="addAgain">＋ Aggiungi nuovo prezzo</button></div>${rows||"<p>Nessun prezzo storico.</p>"}<button class="gray" id="backPrice">Indietro</button>`);$("addAgain").onclick=()=>manualPrice();$("backPrice").onclick=draw})};
   $("priceSearch").oninput=renderRows;$("priceSearch").onkeydown=e=>{if(e.key==="Escape"){$("priceSearch").value="";renderRows()}};
   $("selAllPrices").onclick=()=>{selected=new Set(data.products.map((_,i)=>i));draw()};$("deselPrices").onclick=()=>{selected.clear();draw()};
-  $("exportSelectedPrices").onclick=()=>{const include=$("includePriceHistory").checked;const products=[...selected].sort((a,b)=>a-b).map(i=>data.products[i]).filter(Boolean).map(p=>{const x=JSON.parse(JSON.stringify(p));if(!include)x.priceHistory=[];return x});downloadJSON({type:"spesa-budget-catalogo-prezzi",schemaVersion:VERSION,includesPriceHistory:include,products},"spesa-budget-catalogo-prezzi-selezionati.json")};
+  $("exportSelectedPrices").onclick=()=>{const include=$("includePriceHistory").checked;const products=[...selected].sort((a,b)=>a-b).map(i=>data.products[i]).filter(Boolean).map(p=>{const x=JSON.parse(JSON.stringify(p));if(!include)x.priceHistory=[];return x});downloadJSON({type:"spesa-budget-catalogo-prezzi",schemaVersion:SCHEMA_VERSION,includesPriceHistory:include,products},"spesa-budget-catalogo-prezzi-selezionati.json")};
   $("deleteSelectedPrices").onclick=()=>{if(!selected.size)return;const n=selected.size;if(!confirm(`Eliminare ${n} prodotti dal catalogo prezzi e le relative anagrafiche? Gli scontrini salvati resteranno invariati.`))return;data.products=data.products.filter((_,i)=>!selected.has(i));selected.clear();save();draw()};
   $("addManual").onclick=manualPrice;$("importOld").onclick=importOldReceipt;bindRows();updateSelection();
  };
@@ -1261,7 +1261,7 @@ function backup(){
  open(`<h2>💾 Backup multipli</h2><p class="muted">Crea copie successive senza sovrascrivere quelle precedenti. Quando importi un backup, storico, scontrini e catalogo vengono uniti ai dati esistenti: non vengono sostituiti.</p><button id="snapshot" style="width:100%">📌 Archivia una copia adesso</button><button id="export" class="gray" style="width:100%;margin-top:6px">⬇️ Esporta backup completo</button><button class="gray" id="imp" style="width:100%;margin-top:6px">⬆️ Importa backup</button><label class="check"><input type="checkbox" id="receiptsOnlyImport"> Importa soltanto gli scontrini (non catalogo, anagrafiche o storico prezzi)</label><input id="file" type="file" accept=".json,application/json" hidden><h3>Backup conservati</h3>${rows}<button class="gray" id="close" style="width:100%;margin-top:8px">Chiudi</button>`);
  const saveArchive=()=>{try{localStorage.setItem(archiveKey,JSON.stringify(archive))}catch(e){alert("Archivio locale pieno. Esporta i backup sul dispositivo per conservarli.")}};
  $("close").onclick=close;$("snapshot").onclick=()=>{archive.push({id:uid(),name:"Backup "+new Date().toLocaleString("it-IT"),date:new Date().toLocaleString("it-IT"),receiptCount:data.receipts.length,data:JSON.parse(JSON.stringify(data))});saveArchive();backup()};
- $("export").onclick=()=>downloadJSON(data,"spesa-budget-v10.1-backup-completo.json");$("imp").onclick=()=>$("file").click();
+ $("export").onclick=()=>downloadJSON(data,"spesa-budget-v"+APP_VERSION+"-backup-completo.json");$("imp").onclick=()=>$("file").click();
  $("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const reader=new FileReader();reader.onload=()=>{try{const raw=JSON.parse(reader.result);if($("receiptsOnlyImport").checked){const incomingReceipts=Array.isArray(raw.receipts)?raw.receipts:[];const before=data.receipts.length;const ids=new Set(data.receipts.map(r=>r.id));incomingReceipts.forEach(r=>{if(!r.id||!ids.has(r.id)){data.receipts.push(r);if(r.id)ids.add(r.id)}});save();close();render();alert(`Importati ${data.receipts.length-before} scontrini. Catalogo, anagrafiche e storico prezzi non sono stati modificati.`)}else{const incoming=migrate(raw);mergeBackup(incoming);archive.push({id:uid(),name:f.name,date:new Date().toLocaleString("it-IT"),receiptCount:incoming.receipts.length,data:incoming});saveArchive();save();close();render();alert("Backup completo unito: i dati precedenti sono stati mantenuti.")}}catch(err){alert("Backup non valido o illeggibile.")}};reader.readAsText(f)};
  $("sheet").querySelectorAll("[data-restore]").forEach(b=>b.onclick=()=>{const snap=archive[+b.dataset.restore];if(!snap?.data)return;if(confirm("Unire questo backup ai dati attuali senza eliminare lo storico esistente?")){mergeBackup(migrate(JSON.parse(JSON.stringify(snap.data))));save();close();render();alert("Backup unito correttamente.")}});
  $("sheet").querySelectorAll("[data-removebackup]").forEach(b=>b.onclick=()=>{if(confirm("Eliminare solo questa copia archiviata?")){archive.splice(+b.dataset.removebackup,1);saveArchive();backup()}});
@@ -1366,7 +1366,7 @@ function smartEntry(){
 }
 
 function settings(){
- open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V8.9</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
+ open(`<h2>⚙️ Impostazioni</h2><div class="stat"><b>Spesa — Budget V${APP_VERSION}</b><div class="muted">I budget non sono preimpostati. Li scegli tu quando vuoi.</div></div><button id="reset" style="width:100%">↺ Azzera budget e categorie</button><button class="danger" id="wipe" style="width:100%;margin-top:6px">🗑️ Elimina tutti i dati</button><button class="gray" id="close" style="width:100%;margin-top:6px">Chiudi</button>`);
  $("close").onclick=close;
  $("reset").onclick=()=>{if(confirm("Azzera il budget generale e tutti i budget delle categorie? Gli scontrini e i prodotti NON verranno cancellati.")){data.budget=0;data.budgetConfigured=false;data.categoryBudgetsConfigured=false;data.cats.forEach(c=>{c.budget=0;c.selected=false});save();close();render()}};
  $("wipe").onclick=()=>{if(confirm("Eliminare tutti i dati?")){data=fresh();save();close();render()}};
