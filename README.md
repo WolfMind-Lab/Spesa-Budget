@@ -22,4 +22,6 @@ Versione V10.2, aggiornamento di V10.1 con identità grafica e supporto icone pe
 - Aggiunta variante maskable 512x512.
 - Aggiunta apple-touch-icon 180x180 e favicon 32x32.
 - Aggiornati manifest, riferimenti HTML e cache service worker alla V10.2.
+- Aggiunta la registrazione del service worker nell’HTML.
+- Aggiunta l’icona maskable 512x512 effettivamente richiamata da manifest e cache.
 - Il backup index.backup.html è conservato senza modifiche.

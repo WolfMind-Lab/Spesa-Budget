@@ -7,4 +7,6 @@ Apri index.html nel browser oppure pubblica il progetto su GitHub Pages. Consult
 - Aggiunta variante maskable 512x512.
 - Aggiunta apple-touch-icon 180x180 e favicon 32x32.
 - Aggiornati manifest, riferimenti HTML e cache service worker alla V10.2.
+- Aggiunta la registrazione del service worker nell’HTML.
+- Aggiunta l’icona maskable 512x512 richiamata da manifest e cache.
 - Il backup index.backup.html è conservato senza modifiche.

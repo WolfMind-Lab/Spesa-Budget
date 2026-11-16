@@ -1395,5 +1395,14 @@ photoLightboxImg.addEventListener("click",()=>photoLightboxImg.classList.toggle(
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&photoLightbox.classList.contains("open"))closePhotoLightbox()});
 render();
 </script>
+<script>
+// Registrazione PWA: abilita cache offline e aggiornamenti dell'app.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js", { scope: "./" })
+      .catch(error => console.warn("Registrazione Service Worker non riuscita:", error));
+  });
+}
+</script>
 </body>
 </html>
