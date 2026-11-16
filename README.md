@@ -16,3 +16,10 @@ Versione V10.1, aggiornamento grafico e funzionale della V10.0, costruita sul pr
 - Il codice JavaScript e l'integrità dell'archivio ZIP sono verificati staticamente.
 - Non è stata completata una prova end-to-end in browser né una verifica su iPhone; si consiglia di provare prima una copia/backup dei dati.
 - La scansione OCR degli scontrini e la scansione EAN tramite fotocamera non sono incluse.
+
+## V10.2 — Icona e installazione PWA
+- Aggiunte icone PNG 192x192 e 512x512 per la PWA.
+- Aggiunta variante maskable 512x512.
+- Aggiunta apple-touch-icon 180x180 e favicon 32x32.
+- Aggiornati manifest, riferimenti HTML e cache service worker alla V10.2.
+- Il backup index.backup.html è conservato senza modifiche.
