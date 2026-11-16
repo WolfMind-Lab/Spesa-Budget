@@ -1,14 +1,3 @@
-SPESA — BUDGET V6.1 STABILE
+Spesa — Budget V10.0
 
-Questa versione introduce un archivio dati permanente.
-
-- Chiave dati principale: spesaBudgetData
-- Migra automaticamente spesaV6 e spesaV5
-- Non cancella le vecchie chiavi durante la migrazione
-- Salva sempre le modifiche nel nuovo archivio permanente
-- Conserva un backup automatico prima della migrazione/importazione
-- Permette di ripristinare l'ultimo backup automatico dalle Impostazioni
-- "Azzera" ripristina solo i budget iniziali e non cancella spese/dati
-- "Elimina tutti i dati" è l'unica azione che cancella realmente l'archivio
-
-V9.0: estesa la sezione Lavatrice con tipologia, formati, foto, EAN, prezzi e scorte. La chiave dati locale resta invariata.
+Apri index.html nel browser oppure pubblica il progetto su GitHub Pages. Consulta README.md per le novità V10.0, le regole di compatibilità e i limiti dei test. La chiave dati locale resta spesaBudgetData.
