@@ -1,34 +1,18 @@
-# Spesa — Budget V10.0
+# Spesa — Budget V10.1
 
-Versione V10.0 integrata sul progetto completo V9.0. Sono stati mantenuti `index.backup.html`, manifest, service worker e README preesistenti; la chiave di archiviazione resta `spesaBudgetData`.
+Versione V10.1, aggiornamento grafico e funzionale della V10.0, costruita sul progetto completo V9.0. Sono mantenuti `index.backup.html`, manifest, service worker e README; la chiave di archiviazione resta `spesaBudgetData`.
 
-## Novità V10.0
+## Aggiornamenti V10.1
+- Modulo anagrafica più ordinato: identità del prodotto separata dai dati commerciali della confezione.
+- Per la categoria Lavatrice, EAN, formato, prezzi e supermercato vengono gestiti nel singolo formato, evitando campi duplicati nell'intestazione.
+- Scorta, soglia minima, residuo della confezione aperta, data di apertura e foto restano associati al singolo formato.
+- Il numero di lavaggi è un campo del formato.
+- Rimosso il campo dose consigliata dalla registrazione del formato; nel registro lavaggi la quantità consumata viene inserita manualmente.
+- Le anagrafiche non Lavatrice mantengono il modulo commerciale generale.
+- Nessuna modifica alla chiave localStorage `spesaBudgetData`; i dati già presenti nei formati e nello storico vengono mantenuti.
 
-### Lavatrice
-- Area dedicata con anagrafiche Lavatrice, formati e scorte per formato.
-- Residuo della confezione aperta e data di apertura; stima dei lavaggi residui e dose consigliata modificabile.
-- Registrazione lavaggi con più prodotti e dosi separate; dose suggerita dal rapporto formato/numero lavaggi, modificabile.
-- Cronologia lavaggi consultabile, modificabile, duplicabile ed eliminabile con ripristino dei consumi.
-- Consumo automatico sulle confezioni aperte e apertura di una confezione sigillata quando necessario; registrazione manuale del consumo.
-- Conferma facoltativa per aggiornare le scorte Lavatrice dagli acquisti registrati nello scontrino.
-
-### Comparatore e lista intelligente
-- Confronto in schede e tabella, filtro per supermercato/punto vendita e ricerca.
-- Prezzi storici con data visibile, normalizzazione €/kg, €/L e €/pezzo quando i dati lo consentono.
-- Confronto dei formati multipli della sezione Lavatrice.
-- Scheda prodotto con indicatori: prezzo unitario più conveniente, migliore qualità personale e punteggio equilibrato (50% prezzo, 50% qualità) quando sono disponibili i dati.
-- Alternative di categoria mostrate come suggerimenti con controllo di somiglianza del tipo di prodotto, senza sostituzione automatica.
-- Lista intelligente con quantità modificabili, importazione dei prodotti non completati dalla lista esistente, confronto dei totali parziali per supermercato e simulazione del carrello suddiviso.
-- Dati mancanti segnalati e non conteggiati come costo zero. I prezzi storici sono etichettati con la data e non sono garanzia di disponibilità attuale.
-- Importazione nella lista intelligente degli elementi non completati della lista della spesa già esistente.
-
-## Compatibilità e dati
-- `localStorage` continua a usare la chiave `spesaBudgetData`.
-- La migrazione aggiunge `washLog`, `smartBasket` e ID stabili ai prodotti senza eliminare le strutture precedenti.
-- Backup e importazioni includono i nuovi dati; l'unione dei backup conserva gli elementi già presenti.
-- Il file `index.backup.html` è conservato senza sovrascriverlo.
-
-## Verifiche e limiti
-- Controllo sintattico JavaScript eseguito con Node.js.
-- Il tentativo di apertura automatizzata con Chromium headless non si è concluso nell'ambiente disponibile; non sono quindi dichiarati test end-to-end o test su iPhone.
-- La lettura ottica degli scontrini (OCR) e la scansione EAN tramite fotocamera non sono incluse in questa versione.
+## Compatibilità e limiti
+- L'aggiornamento non cancella i dati esistenti e conserva il backup `index.backup.html`.
+- Il codice JavaScript e l'integrità dell'archivio ZIP sono verificati staticamente.
+- Non è stata completata una prova end-to-end in browser né una verifica su iPhone; si consiglia di provare prima una copia/backup dei dati.
+- La scansione OCR degli scontrini e la scansione EAN tramite fotocamera non sono incluse.
